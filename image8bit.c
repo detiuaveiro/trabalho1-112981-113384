@@ -10,8 +10,8 @@
 /// 2013, 2023
 
 // Student authors (fill in below):
-// NMec:  Name:
-// 
+// NMec: 113384 Name: Danilo Micael Gregório Silva
+// NMec: 112981 Name: Tomás Santos Fernandes
 // 
 // 
 // Date:
@@ -172,6 +172,30 @@ Image ImageCreate(int width, int height, uint8 maxval) { ///
   assert (height >= 0);
   assert (0 < maxval && maxval <= PixMax);
   // Insert your code here!
+
+  Image img = (Image)malloc(sizeof(struct image)); // aloca memória para a Imagem
+  if (img == NULL) {
+    errCause = "Memory allocation error";
+    return NULL;
+  }
+
+  // inicializa as variáveis da imagem
+  img->width = width;  
+  img->height = height;
+  img->maxval = maxval;
+
+  img->pixel = (uint8*)malloc(width*height*sizeof(uint8)); // aloca memória para o array de pixeis
+  if (img->pixel == NULL) {
+    errCause = "Memory allocation error";
+    free(img);
+    return NULL;
+  }
+
+  for (int i = 0; i < width*height; i++) {
+    img->pixel[i] = 0; // inicializa o array de pixeis a 0
+  }
+
+  return img;
 }
 
 /// Destroy the image pointed to by (*imgp).
@@ -182,6 +206,13 @@ Image ImageCreate(int width, int height, uint8 maxval) { ///
 void ImageDestroy(Image* imgp) { ///
   assert (imgp != NULL);
   // Insert your code here!
+
+  if (*imgp != NULL) { // verifica se o ponteiro '*imgp' aponta para uma imagem válida
+    free((*imgp)->pixel); // liberta a memória do array de pixeis
+    free(*imgp); // liberta a memória da imagem
+
+    *imgp = NULL;
+  }
 }
 
 
