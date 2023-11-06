@@ -10,8 +10,8 @@
 /// 2013, 2023
 
 // Student authors (fill in below):
-// NMec: 113384 Name: Danilo Micael Gregório Silva
-// NMec: 112981 Name: Tomás Santos Fernandes
+// NMec:  Name:
+// 
 // 
 // 
 // Date:
@@ -423,7 +423,7 @@ void ImageBrighten(Image img, double factor) { ///
 
 /// Rotate an image.
 /// Returns a rotated version of the image.
-/// The rotation is 90 degrees clockwise.
+/// The rotation is 90 degrees anti-clockwise.
 /// Ensures: The original img is not modified.
 /// 
 /// On success, a new image is returned.
