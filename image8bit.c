@@ -10,8 +10,8 @@
 /// 2013, 2023
 
 // Student authors (fill in below):
-// NMec:  Name:
-// 
+// NMec: 113384 Name: Danilo Micael Gregório Silva
+// NMec: 112981 Name: Tomás Santos Fernandes
 // 
 // 
 // Date:
@@ -192,7 +192,7 @@ Image ImageCreate(int width, int height, uint8 maxval) { ///
   }
 
   for (int i = 0; i < width*height; i++) {
-    img->pixel[i] = 0; // inicializa o array de pixeis a 0
+    img->pixel[i] = 0; // inicializa o array de pixeis a 0 (0->preto e 255->branco)
   }
 
   return img;
@@ -325,6 +325,25 @@ int ImageMaxval(Image img) { ///
 void ImageStats(Image img, uint8* min, uint8* max) { ///
   assert (img != NULL);
   // Insert your code here!
+
+  int width = ImageWidth(img);
+  int height = ImageHeight(img);
+
+  *min = PixMax; // nível mais alto de cinza possível (branco)
+  *max = 0; // nível mais baixo de cinza possível (preto)
+
+  for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            uint8 pixelValue = ImageGetPixel(img, x, y);
+
+            if (pixelValue < *min) {
+                *min = pixelValue;
+            }
+            if (pixelValue > *max) {
+                *max = pixelValue;
+            }
+        }
+    }
 }
 
 /// Check if pixel position (x,y) is inside img.
@@ -352,6 +371,14 @@ int ImageValidRect(Image img, int x, int y, int w, int h) { ///
 static inline int G(Image img, int x, int y) {
   int index;
   // Insert your code here!
+
+  assert(img != NULL);
+  assert(0 <= x && x < img->width);
+  assert(0 <= y && y < img->height);
+
+  index = y * img->width + x; // ao multiplicar pela largura obtemos o número de pixeis 
+                              // que estão antes da linha y e depois somamos o número de pixeis que estão antes da coluna x
+
   assert (0 <= index && index < img->width*img->height);
   return index;
 }
