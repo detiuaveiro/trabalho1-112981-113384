@@ -356,6 +356,20 @@ int ImageValidPos(Image img, int x, int y) { ///
 int ImageValidRect(Image img, int x, int y, int w, int h) { ///
   assert (img != NULL);
   // Insert your code here!
+
+  int imgWidth = ImageWidth(img);
+  int imgHeight = ImageHeight(img);
+
+  // x é a abscissa do canto superior esquerdo da área retangular
+  // y é a ordenada do canto superior esquerdo da área retangular
+  // w é a largura
+  // h é a altura
+
+  if (x >= 0 && y >= 0 && x + w <= imgWidth && y + h <= imgHeight) {
+    return 1; // está contida na imagem
+  }
+
+  return 0; // não está contida na imagem
 }
 
 /// Pixel get & set operations
@@ -414,6 +428,20 @@ void ImageSetPixel(Image img, int x, int y, uint8 level) { ///
 void ImageNegative(Image img) { ///
   assert (img != NULL);
   // Insert your code here!
+
+  int width = ImageWidth(img);
+  int height = ImageHeight(img);
+  uint8 maxval = ImageMaxval(img); // usamos maxval porque este pode ser inferior a 255
+
+  for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            uint8 pixelValue = ImageGetPixel(img, x, y);
+
+            uint8 negativeValue = maxval - pixelValue;
+
+            ImageSetPixel(img, x, y, negativeValue);
+        }
+    }
 }
 
 /// Apply threshold to image.
@@ -422,6 +450,24 @@ void ImageNegative(Image img) { ///
 void ImageThreshold(Image img, uint8 thr) { ///
   assert (img != NULL);
   // Insert your code here!
+
+  int width = ImageWidth(img);
+  int height = ImageHeight(img);
+  uint8 maxval = ImageMaxval(img);
+
+  for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            uint8 pixelValue = ImageGetPixel(img, x, y);
+
+            uint8 thrValue = 0;
+
+            if (pixelValue >= thr) {
+              thrValue = maxval;
+            }
+
+            ImageSetPixel(img, x, y, thrValue);
+        }
+    }
 }
 
 /// Brighten image by a factor.
@@ -430,8 +476,25 @@ void ImageThreshold(Image img, uint8 thr) { ///
 /// darken the image if factor<1.0.
 void ImageBrighten(Image img, double factor) { ///
   assert (img != NULL);
-  // ? assert (factor >= 0.0);
+  assert (factor >= 0.0);
   // Insert your code here!
+
+  int width = ImageWidth(img);
+  int height = ImageHeight(img);
+  uint8 maxval = ImageMaxval(img);
+
+  for (int y = 0; y < height; y++) {
+    for (int x = 0; x < width; x++) {
+      uint8 pixelValue = ImageGetPixel(img, x, y);
+
+      double newPixelValue = (double)pixelValue * factor + 0.5; // é feita a soma para arredondar
+
+      if (newPixelValue > maxval) {
+        newPixelValue = maxval;
+      }
+      ImageSetPixel(img, x, y, (uint8)newPixelValue);
+    }
+  }
 }
 
 
