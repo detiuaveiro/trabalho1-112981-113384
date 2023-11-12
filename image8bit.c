@@ -623,6 +623,30 @@ Image ImageCrop(Image img, int x, int y, int w, int h) { ///
   assert (ImageValidRect(img, x, y, w, h));
   
   // Insert your code here!
+
+  // tem de ser criada uma nova imagem, porque a original não pode ser modificada
+  Image croppedImage = ImageCreate(w, h, ImageMaxval(img));
+  
+  if (croppedImage == NULL) {
+    errsave = errno; // erro que vem de ImageCreate() (?)
+    ImageDestroy(&croppedImage);
+    errno = errsave;  // caso tenha ocorrido erro em ImageDestroy(), o errno continua a conter o valor do erro que ocorreu em ImageCreate()
+    errCause = "Failed to create a new image.";
+    return NULL;
+  }
+
+  // percorrer todos os píxeis presentes no retângulo a recortar na imagem original
+  for (int new_y = 0; new_y < h; new_y++) {
+    for (int new_x = 0; new_x < w; new_x++) {
+      uint8 pixelValue = ImageGetPixel(img, new_x + x, new_y + y); // obter o valor do píxel na posição (x, y) da imagem original
+
+      // transferir o valor do píxel para a posição (i-x, j-y) da imagem cortada
+      ImageSetPixel(croppedImage, new_x, new_y, pixelValue);
+    }
+  }
+
+  return croppedImage;
+
 }
 
 
