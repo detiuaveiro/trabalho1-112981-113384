@@ -696,13 +696,15 @@ void ImageBlend(Image img1, int x, int y, Image img2, double alpha) { ///
   for (int abcissa=0; abcissa < img2Width; abcissa++) {
     for (int ordenada=0; ordenada < img2Height; ordenada++) {
 
-        int img2PixelValue = ImageGetPixel(img2, abcissa, ordenada);      // obter o valor do píxel na posição (abcissa, ordenada) na imagem a ser misturada
+        uint8 img2PixelValue = ImageGetPixel(img2, abcissa, ordenada);      // obter o valor do píxel na posição (abcissa, ordenada) na imagem a ser misturada
         // obter o valor do píxel na posição (x+abcissa, y+ordenada) na imagem grande (desta maneira podemos posicionar a imagem pequena no sítio correto)
-        int img1PixelValue = ImageGetPixel(img1, x+abcissa, y+ordenada);  
+        uint8 img1PixelValue = ImageGetPixel(img1, x+abcissa, y+ordenada);
+
+        double img2NewPixelValue = (1 - alpha) * img1PixelValue + alpha * img2PixelValue + 0.5;   
    
-        // no píxel obtido na imagem original, substitui-se o seu valor pela exxpressão: img1PixelValue-alpha*img1PixelValue)+img2PixelValue*alpha 
+        // no píxel obtido na imagem original, substitui-se o seu valor pela exxpressão: (1 - alpha) * img1PixelValue + alpha * img2PixelValue + 0.5 
         // onde "alpha" indica o grau de opacidade da imagem pequena: 0.0 para não aparecer a pequena, 1.0 para a pequena aparecer opaca por cima da grande
-        ImageSetPixel(img1, x+abcissa, y+ordenada, ((img1PixelValue-alpha*img1PixelValue)+img2PixelValue*alpha));
+        ImageSetPixel(img1, x+abcissa, y+ordenada, (uint8) img2NewPixelValue);
     }
   }
 }
@@ -774,7 +776,7 @@ int ImageLocateSubImage(Image img1, int* px, int* py, Image img2) { ///
 
 
 // Esta função calcula a média dos píxeis no retângulo [x-dx, x+dx]x[y-dy, y+dy]
-static int rectMeanCalc(Image img, int x, int y, int dx, int dy) {
+static uint8 rectMeanCalc(Image img, int x, int y, int dx, int dy) {
   
   int imgWidth = ImageWidth(img);   // obter a largura da imagem
   int imgHeight = ImageHeight(img); // obter a altura da imagem
@@ -820,7 +822,8 @@ static int rectMeanCalc(Image img, int x, int y, int dx, int dy) {
   }
 
   // no fim, devolve a média dos valores dos píxeis do retângulo
-  return sum/pixelCount;
+  return (uint8) (((sum+pixelCount/2)/pixelCount)); // somar ao numerador metade do denominador porque sum é inteiro
+                                                    // outra forma seria passar sum para double e somas 0.5 no final para arrendondar para cima
   }
 
 
