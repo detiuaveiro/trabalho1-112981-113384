@@ -176,7 +176,7 @@ Image ImageCreate(int width, int height, uint8 maxval) { ///
 
   Image img = (Image)malloc(sizeof(struct image)); // aloca memória para a Imagem
   if (img == NULL) {
-    errno = ENOMEM;
+    //errno = ENOMEM; -> o malloc já vai atribuir o devido erro a errno, logo não devemos mexer
     errCause = "Memory allocation error";
     return NULL;
   }
@@ -188,7 +188,7 @@ Image ImageCreate(int width, int height, uint8 maxval) { ///
 
   img->pixel = (uint8*)malloc(width*height*sizeof(uint8)); // aloca memória para o array de pixeis
   if (img->pixel == NULL) {
-    errno = ENOMEM;
+    //errno = ENOMEM; -> o malloc já vai atribuir o devido erro a errno, logo não devemos mexer
     errCause = "Memory allocation error";
     free(img);
     return NULL;
@@ -319,7 +319,7 @@ int ImageHeight(Image img) { ///
 /// Get image maximum gray level
 int ImageMaxval(Image img) { ///
   assert (img != NULL);
-  return img->maxval;
+  return img->maxval;   // máximo valor definido na criação da função, mas pode nõ ser o maior nos píxeis
 }
 
 /// Pixel stats
@@ -337,7 +337,7 @@ void ImageStats(Image img, uint8* min, uint8* max) { ///
   *min = PixMax; // nível mais alto de cinza possível (branco)
   *max = 0; // nível mais baixo de cinza possível (preto)
 
-  for (int y = 0; y < height; y++) {
+  for (int y = 0; y < height; y++) {  // encontrar o mínimo e o máximo, percorrendo todos os píxeis
         for (int x = 0; x < width; x++) {
             uint8 pixelValue = ImageGetPixel(img, x, y);
 
@@ -539,9 +539,9 @@ Image ImageRotate(Image img) { ///
   Image rotatedImage = ImageCreate(imgHeight, imgWidth, imgMaxVal); // neste caso, preciso de trocar a altura pela largura (caso a imagem não seja quadrada)
 
   if (rotatedImage == NULL) {
-    errsave = errno; // erro que vem de ImageCreate() (?)
-    ImageDestroy(&rotatedImage);
-    errno = errsave;  // caso tenha ocorrido erro em ImageDestroy(), o errno continua a conter o valor do erro que ocorreu em ImageCreate()
+    //errsave = errno; // erro que vem de ImageCreate() (?)
+    //ImageDestroy(&rotatedImage);  ------>>>>> Não podemos fazer isto, , vai dar-nos erro porqie estou a destruir algo que não conseguiu ser criado
+    //errno = errsave;  // caso tenha ocorrido erro em ImageDestroy(), o errno continua a conter o valor do erro que ocorreu em ImageCreate()
     errCause = "Failed to create a new image.";
     return NULL;
   }
@@ -582,9 +582,9 @@ Image ImageMirror(Image img) { ///
   Image mirroredImage = ImageCreate(imgWidth, imgHeight, imgMaxVal);
 
   if (mirroredImage == NULL) {
-    errsave = errno; // erro que vem de ImageCreate() (?)
-    ImageDestroy(&mirroredImage);
-    errno = errsave;  // caso tenha ocorrido erro em ImageDestroy(), o errno continua a conter o valor do erro que ocorreu em ImageCreate()
+    //errsave = errno; // erro que vem de ImageCreate() (?)
+    //ImageDestroy(&mirroredImage);   ------>>>>> Não podemos fazer isto, , vai dar-nos erro porqie estou a destruir algo que não conseguiu ser criado
+    //errno = errsave;  // caso tenha ocorrido erro em ImageDestroy(), o errno continua a conter o valor do erro que ocorreu em ImageCreate()
     errCause = "Failed to create a new image.";
     return NULL;
   }
@@ -628,9 +628,9 @@ Image ImageCrop(Image img, int x, int y, int w, int h) { ///
   Image croppedImage = ImageCreate(w, h, ImageMaxval(img));
 
   if (croppedImage == NULL) {
-    errsave = errno; // erro que vem de ImageCreate() (?)
-    ImageDestroy(&croppedImage);
-    errno = errsave;  // caso tenha ocorrido erro em ImageDestroy(), o errno continua a conter o valor do erro que ocorreu em ImageCreate()
+    //errsave = errno; // erro que vem de ImageCreate() (?)
+    //ImageDestroy(&croppedImage);    ------>>>>> Não podemos fazer isto, , vai dar-nos erro porqie estou a destruir algo que não conseguiu ser criado
+    //errno = errsave;  // caso tenha ocorrido erro em ImageDestroy(), o errno continua a conter o valor do erro que ocorreu em ImageCreate()
     errCause = "Failed to create a new image.";
     return NULL;
   }
@@ -846,9 +846,9 @@ void ImageBlur(Image img, int dx, int dy) { ///
   // e não de acordo com a média deles, calculada nas iterações anteriores
   Image img2 = ImageCreate(imgWidth, imgHeight, imgMaxVal); 
   if (img2 == NULL) {
-    errsave = errno; // erro que vem de ImageCreate() (?)
-    ImageDestroy(&img2);
-    errno = errsave;  // caso tenha ocorrido erro em ImageDestroy(), o errno continua a conter o valor do erro que ocorreu em ImageCreate()
+    //errsave = errno; // erro que vem de ImageCreate() (?)
+    //ImageDestroy(&img2);    ------>>>>> Não podemos fazer isto, , vai dar-nos erro porqie estou a destruir algo que não conseguiu ser criado
+    //errno = errsave;  // caso tenha ocorrido erro em ImageDestroy(), o errno continua a conter o valor do erro que ocorreu em ImageCreate()
     errCause = "Failed to create a new image.";
     return ;
   }
