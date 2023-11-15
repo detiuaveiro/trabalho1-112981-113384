@@ -176,7 +176,6 @@ Image ImageCreate(int width, int height, uint8 maxval) { ///
 
   Image img = (Image)malloc(sizeof(struct image)); // aloca memória para a Imagem
   if (img == NULL) {
-    //errno = ENOMEM; -> o malloc já vai atribuir o devido erro a errno, logo não devemos mexer
     errCause = "Memory allocation error";
     return NULL;
   }
@@ -188,7 +187,6 @@ Image ImageCreate(int width, int height, uint8 maxval) { ///
 
   img->pixel = (uint8*)malloc(width*height*sizeof(uint8)); // aloca memória para o array de pixeis
   if (img->pixel == NULL) {
-    //errno = ENOMEM; -> o malloc já vai atribuir o devido erro a errno, logo não devemos mexer
     errCause = "Memory allocation error";
     free(img);
     return NULL;
@@ -539,9 +537,6 @@ Image ImageRotate(Image img) { ///
   Image rotatedImage = ImageCreate(imgHeight, imgWidth, imgMaxVal); // neste caso, preciso de trocar a altura pela largura (caso a imagem não seja quadrada)
 
   if (rotatedImage == NULL) {
-    //errsave = errno; // erro que vem de ImageCreate() (?)
-    //ImageDestroy(&rotatedImage);  ------>>>>> Não podemos fazer isto, , vai dar-nos erro porqie estou a destruir algo que não conseguiu ser criado
-    //errno = errsave;  // caso tenha ocorrido erro em ImageDestroy(), o errno continua a conter o valor do erro que ocorreu em ImageCreate()
     errCause = "Failed to create a new image.";
     return NULL;
   }
@@ -582,9 +577,6 @@ Image ImageMirror(Image img) { ///
   Image mirroredImage = ImageCreate(imgWidth, imgHeight, imgMaxVal);
 
   if (mirroredImage == NULL) {
-    //errsave = errno; // erro que vem de ImageCreate() (?)
-    //ImageDestroy(&mirroredImage);   ------>>>>> Não podemos fazer isto, , vai dar-nos erro porqie estou a destruir algo que não conseguiu ser criado
-    //errno = errsave;  // caso tenha ocorrido erro em ImageDestroy(), o errno continua a conter o valor do erro que ocorreu em ImageCreate()
     errCause = "Failed to create a new image.";
     return NULL;
   }
@@ -628,9 +620,6 @@ Image ImageCrop(Image img, int x, int y, int w, int h) { ///
   Image croppedImage = ImageCreate(w, h, ImageMaxval(img));
 
   if (croppedImage == NULL) {
-    //errsave = errno; // erro que vem de ImageCreate() (?)
-    //ImageDestroy(&croppedImage);    ------>>>>> Não podemos fazer isto, , vai dar-nos erro porqie estou a destruir algo que não conseguiu ser criado
-    //errno = errsave;  // caso tenha ocorrido erro em ImageDestroy(), o errno continua a conter o valor do erro que ocorreu em ImageCreate()
     errCause = "Failed to create a new image.";
     return NULL;
   }
@@ -776,7 +765,7 @@ int ImageLocateSubImage(Image img1, int* px, int* py, Image img2) { ///
 
 
 // Esta função calcula a média dos píxeis no retângulo [x-dx, x+dx]x[y-dy, y+dy]
-static uint8 rectMeanCalc(Image img, int x, int y, int dx, int dy) {
+static uint8 rectMeanCalc(Image img, int x, int y, int dx, int dy, uint8 *comulativeSum) {
   
   int imgWidth = ImageWidth(img);   // obter a largura da imagem
   int imgHeight = ImageHeight(img); // obter a altura da imagem
@@ -785,9 +774,6 @@ static uint8 rectMeanCalc(Image img, int x, int y, int dx, int dy) {
   int yCima = y - dy;               // obter a ordenada do(s) píxel(eis) mais acima no retângulo
   int xDireita = x + dx;            // obter a abcissa do(s) píxel(eis) mais à direita no retângulo
   int yBaixo = y + dy;              // obter a ordenada do(s) píxel(eis) mais abaixo no retângulo
-
-  int sum = 0;                      // variável que conterá a soma dos valores dos píxeis no retângulo
-  int pixelCount = 0;               // variável que conterá o nº de píxeis no retângulo
 
 
   // as verificações a seguir servem para saber se os limites do retângulo [x-dx, x+dx]x[y-dy, y+dy] ficam dentro da imagem
@@ -812,18 +798,31 @@ static uint8 rectMeanCalc(Image img, int x, int y, int dx, int dy) {
   // se não ficar, a mesma passa a ser o índice limite da altura da imagem
   if (!ImageValidPos(img, x, yBaixo)) 
     yBaixo = (imgHeight-1);
+
+  int areaRect = (yBaixo-yCima+1)*(xDireita-xEsquerda+1);
+
+  int xEsquerda_aux = xEsquerda;
+  int yCima_aux = yCima;
+
+  if (ImageValidPos(img, xEsquerda-1, y)) 
+    xEsquerda_aux = xEsquerda-1;
+
+  if (ImageValidPos(img, yCima-1, y)) 
+    yCima_aux = yCima-1;
   
-  // sabendo os limites finais do retângulo, percorrem-se os seus píxeis todos
-  for (int i=xEsquerda; i<=xDireita; i++) {
-    for (int j=yCima; j<=yBaixo; j++) {
-      pixelCount++;                     // adiciona 1 píxel à contagem
-      sum += ImageGetPixel(img, i, j);  // adiciona o seu valor à soma
-    }
-  }
+
+
+
+  int val1 = comulativeSum[G(img, xDireita, yBaixo)];  
+  int val2 = comulativeSum[G(img, xEsquerda_aux, yBaixo)];
+  int val3 = comulativeSum[G(img, xDireita, yCima_aux)];
+  int val4 = comulativeSum[G(img, xEsquerda_aux, yCima_aux)];
+  
+  int conta = val1-val2-val3+val4;
+
 
   // no fim, devolve a média dos valores dos píxeis do retângulo
-  return (uint8) (((sum+pixelCount/2)/pixelCount)); // somar ao numerador metade do denominador porque sum é inteiro
-                                                    // outra forma seria passar sum para double e somas 0.5 no final para arrendondar para cima
+  return (uint8) (((conta+areaRect/2)/areaRect)); 
   }
 
 
@@ -841,32 +840,20 @@ void ImageBlur(Image img, int dx, int dy) { ///
   int imgHeight = ImageHeight(img); // obter a altura
   int imgMaxVal = ImageMaxval(img); // obter o nível máximo de cinza na imagem
   int mean; // variável que conterá a média cada iteração
-  
-  // criámos uma nova imagem igual à original (cópia), para podermos calcular a média de cada píxel de acordo com os valores originais dos píxeis, 
-  // e não de acordo com a média deles, calculada nas iterações anteriores
-  Image img2 = ImageCreate(imgWidth, imgHeight, imgMaxVal); 
-  if (img2 == NULL) {
-    //errsave = errno; // erro que vem de ImageCreate() (?)
-    //ImageDestroy(&img2);    ------>>>>> Não podemos fazer isto, , vai dar-nos erro porqie estou a destruir algo que não conseguiu ser criado
-    //errno = errsave;  // caso tenha ocorrido erro em ImageDestroy(), o errno continua a conter o valor do erro que ocorreu em ImageCreate()
-    errCause = "Failed to create a new image.";
-    return ;
-  }
+  uint8* comulativeSum = (uint8*)malloc(imgHeight*imgWidth*sizeof(uint8));
+  long int sum = 0;
 
   // copiar os valores de cada píxel da imagem original para a sua cópia
   for (int i=0; i<=imgHeight*imgWidth; i++) {
-    img2->pixel[i] = img->pixel[i];
+    sum += img->pixel[i];
+    comulativeSum[sum];
   }
 
   // percorrer todos os píxeis na imagem original
   for (int x=0; x<imgWidth; x++) {
     for (int y=0; y<imgHeight; y++) {
 
-      // em cada píxel, usamos a função criada em cima (rectMeanCalc()) que devolve a média calculada dos 
-      // valores dos píxeis no retângulo [x-dx, x+dx]x[y-dy, y+dy];
-      // passsamos a "img2" (cópia) como argumento, para a média ser efetuada com os valores originais 
-      // dos píxeis da imagem, sem sofrerem as alterações feitas nas iterações anteriores
-      mean = rectMeanCalc(img2, x, y, dx, dy); 
+      mean = rectMeanCalc(img, x, y, dx, dy, comulativeSum); 
 
       // em seguida, substituímos o valor do píxel desta iteração pela média calculada
       ImageSetPixel(img, x, y, mean);
