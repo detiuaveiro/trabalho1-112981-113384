@@ -148,12 +148,16 @@ void ImageInit(void) { ///
   InstrCalibrate();
   InstrName[0] = "pixmem";  // InstrCount[0] will count pixel array acesses
   // Name other counters here...
+
+  InstrName[1] = "comparision"; // InstrCount[1] will count comparisions
   
 }
 
 // Macros to simplify accessing instrumentation counters:
 #define PIXMEM InstrCount[0]
 // Add more macros here...
+
+#define COMPARISION InstrCount[1]
 
 // TIP: Search for PIXMEM or InstrCount to see where it is incremented!
 
@@ -658,7 +662,7 @@ void ImagePaste(Image img1, int x, int y, Image img2) { ///
   for (int abcissa=0; abcissa < img2Width; abcissa++) {
     for (int ordenada=0; ordenada < img2Height; ordenada++) {
 
-        int img2PixelValue = ImageGetPixel(img2, abcissa, ordenada);  // obter o valor do píxel na posição (abcissa, ordenada) na imagem a ser colada
+        uint8 img2PixelValue = ImageGetPixel(img2, abcissa, ordenada);  // obter o valor do píxel na posição (abcissa, ordenada) na imagem a ser colada
    
         // para colar no sítio certo, têm de ser feitas as somas x+abcissa e y+ordenada, o valor obtido acima é tranferido para estas coordenadas na imagem grande
         ImageSetPixel(img1, x+abcissa, y+ordenada, img2PixelValue);
@@ -710,16 +714,18 @@ int ImageMatchSubImage(Image img1, int x, int y, Image img2) { ///
   int img2Width = ImageWidth(img2);   // obter a largura da imagem a ser comparada (pequena)
   int img2Height = ImageHeight(img2); // obter a altura da imagem a ser comparada (pequena)
 
-  if (ImageValidRect(img1, x, y, img2Width-1, img2Height-1)) // verificar se é possível a imagem 2 estar contida na imagem 1
+  if (!ImageValidRect(img1, x, y, img2Width-1, img2Height-1)) // verificar se é possível a imagem 2 estar contida na imagem 1
     return 0; 
 
   // percorrer todos os píxeis da imagem pequena
   for (int abcissa=0; abcissa<img2Width; abcissa++) {
     for (int ordenada=0; ordenada<img2Height; ordenada++) {
 
-        int img2PixelValue = ImageGetPixel(img2, abcissa, ordenada);      // obter o valor do píxel na posição (abcissa, ordenada) da imagem pequena a ser comparada
+        uint8 img2PixelValue = ImageGetPixel(img2, abcissa, ordenada);      // obter o valor do píxel na posição (abcissa, ordenada) da imagem pequena a ser comparada
         // obter o valor do píxel na posição (x+abcissa, y+ordenada) na imagem grande (correspondente ao píxel na posição (abcissa, ordenada) da imagem pequena)
-        int img1PixelValue = ImageGetPixel(img1, x+abcissa, y+ordenada);  
+        uint8 img1PixelValue = ImageGetPixel(img1, x+abcissa, y+ordenada);  
+
+        COMPARISION++; // incrementar o contador de comparações
 
         // caso os dois valores acima não sejam iguais, a igualdade do match falha e a função retorna 0
         if (img1PixelValue != img2PixelValue)
@@ -738,12 +744,15 @@ int ImageLocateSubImage(Image img1, int* px, int* py, Image img2) { ///
   assert (img2 != NULL);
   // Insert your code here!
 
-  int img2Width = ImageWidth(img2);   // obter a largura da imagem a ser comparada (pequena)
-  int img2Height = ImageHeight(img2); // obter a altura da imagem a ser comparada (pequena)
+  int img1Width = ImageWidth(img1);   // obter a largura da imagem grande
+  int img1Height = ImageHeight(img1); // obter a altura da imagem grande
 
-  // percorrer todos os píxeis da imagem pequena
-  for (int x=0; x<img2Width; x++) {
-    for (int y=0; y<img2Height; y++) { 
+  int img2Width = ImageWidth(img2);   // obter a largura da imagem pequena
+  int img2Height = ImageHeight(img2); // obter a altura da imagem pequena
+
+  // percorrer todos os píxeis da imagem grande 
+  for (int x=0; x<=img1Width - img2Width; x++) {
+    for (int y=0; y<=img1Height - img2Height; y++) { 
 
       // em cada píxel, usamos a função ImageMatchSubImage() desenvolvida acima para verificar se o retângulo criado a partir do píxel na posição
       // (x, y) corresponde a uma subimagem na imagem grande;
@@ -751,7 +760,7 @@ int ImageLocateSubImage(Image img1, int* px, int* py, Image img2) { ///
       if (ImageMatchSubImage(img1, x, y, img2)) {   
         *px = x;      
         *py = y;
-        return 1;                                   
+        return 1;                                     
       }
 
     }  
@@ -765,7 +774,7 @@ int ImageLocateSubImage(Image img1, int* px, int* py, Image img2) { ///
 
 
 // Esta função calcula a média dos píxeis no retângulo [x-dx, x+dx]x[y-dy, y+dy]
-static uint8 rectMeanCalc(Image img, int x, int y, int dx, int dy, uint8 *comulativeSum) {
+static uint8 rectMeanCalc(Image img, int x, int y, int dx, int dy, unsigned long **comulativeSum) {
   
   int imgWidth = ImageWidth(img);   // obter a largura da imagem
   int imgHeight = ImageHeight(img); // obter a altura da imagem
@@ -813,10 +822,10 @@ static uint8 rectMeanCalc(Image img, int x, int y, int dx, int dy, uint8 *comula
 
 
 
-  int val1 = comulativeSum[G(img, xDireita, yBaixo)];  
-  int val2 = comulativeSum[G(img, xEsquerda_aux, yBaixo)];
-  int val3 = comulativeSum[G(img, xDireita, yCima_aux)];
-  int val4 = comulativeSum[G(img, xEsquerda_aux, yCima_aux)];
+  int val1 = comulativeSum[yBaixo][xDireita];  
+  int val2 = xEsquerda > 0 ? comulativeSum[yBaixo][xEsquerda_aux] : 0;
+  int val3 = yCima > 0 ? comulativeSum[yCima_aux][xDireita] : 0;
+  int val4 = (xEsquerda > 0 && yCima > 0) ? comulativeSum[yCima_aux][xEsquerda_aux] : 0;
   
   int conta = val1-val2-val3+val4;
 
@@ -838,26 +847,41 @@ void ImageBlur(Image img, int dx, int dy) { ///
 
   int imgWidth = ImageWidth(img);   // obter a largura
   int imgHeight = ImageHeight(img); // obter a altura
-  int imgMaxVal = ImageMaxval(img); // obter o nível máximo de cinza na imagem
   int mean; // variável que conterá a média cada iteração
-  uint8* comulativeSum = (uint8*)malloc(imgHeight*imgWidth*sizeof(uint8));
-  long int sum = 0;
+  unsigned long** cumulativeSum = (unsigned long**)malloc(imgHeight*sizeof(unsigned long*));
+  for (int i = 0; i < imgHeight; i++) {
+    cumulativeSum[i] = (unsigned long*)malloc(imgWidth*sizeof(unsigned long));
+  }
 
-  // copiar os valores de cada píxel da imagem original para a sua cópia
-  for (int i=0; i<=imgHeight*imgWidth; i++) {
-    sum += img->pixel[i];
-    comulativeSum[sum];
+  cumulativeSum[0][0] = ImageGetPixel(img, 0, 0);
+  for (int x = 1; x < imgWidth; x++) {
+    cumulativeSum[0][x] = cumulativeSum[0][x - 1] + ImageGetPixel(img, x, 0);
+  }
+
+  for (int y = 1; y < imgHeight; y++) {
+    cumulativeSum[y][0] = cumulativeSum[y - 1][0] + ImageGetPixel(img, 0, y);
+  }
+
+  for (int y = 1; y < imgHeight; y++) {
+    for (int x = 1; x < imgWidth; x++) {
+      cumulativeSum[y][x] = cumulativeSum[y - 1][x] + cumulativeSum[y][x - 1] - cumulativeSum[y - 1][x - 1] + ImageGetPixel(img, x, y);
+    }
   }
 
   // percorrer todos os píxeis na imagem original
   for (int x=0; x<imgWidth; x++) {
     for (int y=0; y<imgHeight; y++) {
 
-      mean = rectMeanCalc(img, x, y, dx, dy, comulativeSum); 
+      mean = rectMeanCalc(img, x, y, dx, dy, cumulativeSum); 
 
       // em seguida, substituímos o valor do píxel desta iteração pela média calculada
       ImageSetPixel(img, x, y, mean);
     }
   }
+
+  for (int i = 0; i < imgHeight; ++i) {
+    free(cumulativeSum[i]);
+  }
+  free(cumulativeSum);
 }
 

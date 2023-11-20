@@ -7,7 +7,7 @@
 
 CFLAGS = -Wall -O2 -g
 
-PROGS = imageTool imageTest
+PROGS = imageTool imageTest melhorCaso piorCaso
 
 TESTS = test1 test2 test3 test4 test5 test6 test7 test8 test9
 
@@ -21,6 +21,14 @@ imageTest.o: image8bit.h instrumentation.h
 imageTool: imageTool.o image8bit.o instrumentation.o error.o
 
 imageTool.o: image8bit.h instrumentation.h
+
+melhorCaso: melhorCaso.o image8bit.o instrumentation.o error.o
+
+melhorCaso.o: image8bit.h instrumentation.h
+
+piorCaso: piorCaso.o image8bit.o instrumentation.o error.o
+
+piorCaso.o: image8bit.h instrumentation.h
 
 # Rule to make any .o file dependent upon corresponding .h file
 %.o: %.h
@@ -72,6 +80,26 @@ test8: $(PROGS) setup
 test9: $(PROGS) setup
 	./imageTool test/original.pgm blur 7,7 save blur.pgm
 	cmp blur.pgm test/blur.pgm
+
+testLocate: $(PROGS) setup
+	./imageTest pgm/small/bird_256x256.pgm pgm/large/einstein_940x940.pgm pgm/medium/airfield-05_640x480.pgm  pgm/small/art4_300x300.pgm largePasted.pgm mediumPasted.pgm smallPasted.pgm
+
+testMelhorCaso: $(PROGS) setup
+	./melhorCaso pgm/small/bird_256x256.pgm pgm/large/einstein_940x940.pgm pgm/medium/airfield-05_640x480.pgm  pgm/small/art4_300x300.pgm largePasted_melhor.pgm mediumPasted_melhor.pgm smallPasted_melhor.pgm
+
+testPiorCaso: $(PROGS) setup
+	./piorCaso pgm/small/bird_256x256.pgm pgm/large/einstein_940x940.pgm pgm/medium/airfield-05_640x480.pgm  pgm/small/art4_300x300.pgm largePasted_pior.pgm mediumPasted_pior.pgm smallPasted_pior.pgm
+
+testValgrind: $(PROGS) setup
+	valgrind ./imageTool test/original.pgm neg save neg.pgm
+	valgrind ./imageTool test/original.pgm thr 128 save thr.pgm
+	valgrind ./imageTool test/original.pgm bri .33 save bri.pgm
+	valgrind ./imageTool test/original.pgm rotate save rotate.pgm
+	valgrind ./imageTool test/original.pgm mirror save mirror.pgm
+	valgrind ./imageTool test/original.pgm crop 100,100,100,100 save crop.pgm
+	valgrind ./imageTool test/small.pgm test/original.pgm paste 100,100 save paste.pgm
+	valgrind ./imageTool test/small.pgm test/original.pgm blend 100,100,.33 save blend.pgm
+	valgrind ./imageTool test/original.pgm blur 7,7 save blur.pgm
 
 .PHONY: tests
 tests: $(TESTS)

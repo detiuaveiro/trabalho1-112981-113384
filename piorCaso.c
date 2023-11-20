@@ -1,14 +1,3 @@
-// imageTest - A program that performs some image processing.
-//
-// This program is an example use of the image8bit module,
-// a programming project for the course AED, DETI / UA.PT
-//
-// You may freely use and modify this code, NO WARRANTY, blah blah,
-// as long as you give proper credit to the original and subsequent authors.
-//
-// João Manuel Rodrigues <jmr@ua.pt>
-// 2023
-
 #include <assert.h>
 #include <errno.h>
 #include "error.h"
@@ -52,17 +41,17 @@ int main(int argc, char* argv[]) {
   }
 
   // as seguintes linhas criam as imagens que serão usadas para testar a função ImageLocateSubImage
-  // estas imagens possuem tamanhos diferentes e a subimagem está presente no centro
-  int largeX = (ImageWidth(imageLarge) - ImageWidth(imageToPaste)) / 2;
-  int largeY = (ImageHeight(imageLarge) - ImageHeight(imageToPaste)) / 2;
+  // estas imagens possuem tamanhos diferentes e a subimagem está presente no fim
+  int largeX = (ImageWidth(imageLarge) - ImageWidth(imageToPaste));
+  int largeY = (ImageHeight(imageLarge) - ImageHeight(imageToPaste));
   ImagePaste(imageLarge, largeX, largeY, imageToPaste);
 
-  int mediumX = (ImageWidth(imageMedium) - ImageWidth(imageToPaste)) / 2;
-  int mediumY = (ImageHeight(imageMedium) - ImageHeight(imageToPaste)) / 2;
+  int mediumX = (ImageWidth(imageMedium) - ImageWidth(imageToPaste));
+  int mediumY = (ImageHeight(imageMedium) - ImageHeight(imageToPaste));
   ImagePaste(imageMedium, mediumX, mediumY, imageToPaste);
 
-  int smallX = (ImageWidth(imageSmall) - ImageWidth(imageToPaste)) / 2;
-  int smallY = (ImageHeight(imageSmall) - ImageHeight(imageToPaste)) / 2;
+  int smallX = (ImageWidth(imageSmall) - ImageWidth(imageToPaste));
+  int smallY = (ImageHeight(imageSmall) - ImageHeight(imageToPaste));
   ImagePaste(imageSmall, smallX, smallY, imageToPaste);
 
   // dar save apenas para verificar se as imagens criadas eram o que esperavamos para poder testar
@@ -123,4 +112,3 @@ int main(int argc, char* argv[]) {
   ImageDestroy(&imageSmall);
   return 0;
 }
-
