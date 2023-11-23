@@ -150,6 +150,7 @@ void ImageInit(void) { ///
   // Name other counters here...
 
   InstrName[1] = "comparision"; // InstrCount[1] will count comparisions
+  InstrName[2] = "operations";
   
 }
 
@@ -158,6 +159,7 @@ void ImageInit(void) { ///
 // Add more macros here...
 
 #define COMPARISION InstrCount[1]
+#define OPERATIONS InstrCount[2]
 
 // TIP: Search for PIXMEM or InstrCount to see where it is incremented!
 

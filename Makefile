@@ -82,7 +82,7 @@ test9: $(PROGS) setup
 	cmp blur.pgm test/blur.pgm
 
 testLocate: $(PROGS) setup
-	./imageTest pgm/small/bird_256x256.pgm pgm/large/einstein_940x940.pgm pgm/medium/airfield-05_640x480.pgm  pgm/small/art4_300x300.pgm largePasted.pgm mediumPasted.pgm smallPasted.pgm
+	./imageTest pgm/small/art3_222x217.pgm pgm/large/airfield-05_1600x1200.pgm pgm/large/einstein_940x940.pgm pgm/medium/airfield-05_640x480.pgm pgm/medium/mandrill_512x512.pgm pgm/small/bird_256x256.pgm
 
 testMelhorCaso: $(PROGS) setup
 	./melhorCaso pgm/small/bird_256x256.pgm pgm/large/einstein_940x940.pgm pgm/medium/airfield-05_640x480.pgm  pgm/small/art4_300x300.pgm largePasted_melhor.pgm mediumPasted_melhor.pgm smallPasted_melhor.pgm

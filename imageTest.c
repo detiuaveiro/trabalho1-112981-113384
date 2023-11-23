@@ -20,7 +20,7 @@
 
 int main(int argc, char* argv[]) {
   program_name = argv[0];
-  if (argc != 8) {
+  if (argc != 7) {
     error(1, 0, "Usage: imageTest input.pgm output.pgm");
   }
 
@@ -34,93 +34,130 @@ int main(int argc, char* argv[]) {
   }
 
   // imagem grande
-  Image imageLarge = ImageLoad(argv[2]);
-  if (imageLarge == NULL) {
+  Image image1 = ImageLoad(argv[2]);
+  if (image1 == NULL) {
       error(2, errno, "Loading %s: %s", argv[2], ImageErrMsg());
   }
 
-  // imagem media
-  Image imageMedium = ImageLoad(argv[3]);
-  if (imageMedium == NULL) {
+  // imagem grande 2
+  Image image2 = ImageLoad(argv[3]);
+  if (image2 == NULL) {
       error(2, errno, "Loading %s: %s", argv[3], ImageErrMsg());
   }
 
-  // imagem imagem pequena
-  Image imageSmall = ImageLoad(argv[4]);
-  if (imageSmall == NULL) {
+  // imagem media
+  Image image3 = ImageLoad(argv[4]);
+  if (image3 == NULL) {
       error(2, errno, "Loading %s: %s", argv[4], ImageErrMsg());
+  }
+
+  // imagem media 2
+  Image image4 = ImageLoad(argv[5]);
+  if (image4 == NULL) {
+      error(2, errno, "Loading %s: %s", argv[5], ImageErrMsg());
+  }
+
+  // imagem imagem pequena
+  Image image5 = ImageLoad(argv[6]);
+  if (image5 == NULL) {
+      error(2, errno, "Loading %s: %s", argv[6], ImageErrMsg());
   }
 
   // as seguintes linhas criam as imagens que serão usadas para testar a função ImageLocateSubImage
   // estas imagens possuem tamanhos diferentes e a subimagem está presente no centro
-  int largeX = (ImageWidth(imageLarge) - ImageWidth(imageToPaste)) / 2;
-  int largeY = (ImageHeight(imageLarge) - ImageHeight(imageToPaste)) / 2;
-  ImagePaste(imageLarge, largeX, largeY, imageToPaste);
+  int X1 = (ImageWidth(image1) - ImageWidth(imageToPaste)) / 2;
+  int Y1 = (ImageHeight(image1) - ImageHeight(imageToPaste)) / 2;
+  ImagePaste(image1, X1, Y1, imageToPaste);
 
-  int mediumX = (ImageWidth(imageMedium) - ImageWidth(imageToPaste)) / 2;
-  int mediumY = (ImageHeight(imageMedium) - ImageHeight(imageToPaste)) / 2;
-  ImagePaste(imageMedium, mediumX, mediumY, imageToPaste);
+  int X2 = (ImageWidth(image2) - ImageWidth(imageToPaste)) / 2;
+  int Y2 = (ImageHeight(image2) - ImageHeight(imageToPaste)) / 2;
+  ImagePaste(image2, X2, Y2, imageToPaste);
 
-  int smallX = (ImageWidth(imageSmall) - ImageWidth(imageToPaste)) / 2;
-  int smallY = (ImageHeight(imageSmall) - ImageHeight(imageToPaste)) / 2;
-  ImagePaste(imageSmall, smallX, smallY, imageToPaste);
+  int X3 = (ImageWidth(image3) - ImageWidth(imageToPaste)) / 2;
+  int Y3 = (ImageHeight(image3) - ImageHeight(imageToPaste)) / 2;
+  ImagePaste(image3, X3, Y3, imageToPaste);
 
-  // dar save apenas para verificar se as imagens criadas eram o que esperavamos para poder testar
-  if (ImageSave(imageLarge, argv[5]) == 0) {
-    error(2, errno, "%s: %s", argv[5], ImageErrMsg());
-  }
-  if (ImageSave(imageMedium, argv[6]) == 0) {
-    error(2, errno, "%s: %s", argv[6], ImageErrMsg());
-  }
-  if (ImageSave(imageSmall, argv[7]) == 0) {
-    error(2, errno, "%s: %s", argv[7], ImageErrMsg());
-  }
+  int X4 = (ImageWidth(image4) - ImageWidth(imageToPaste)) / 2;
+  int Y4 = (ImageHeight(image4) - ImageHeight(imageToPaste)) / 2;
+  ImagePaste(image4, X4, Y4, imageToPaste);
+
+  int X5 = (ImageWidth(image5) - ImageWidth(imageToPaste)) / 2;
+  int Y5 = (ImageHeight(image5) - ImageHeight(imageToPaste)) / 2;
+  ImagePaste(image5, X5, Y5, imageToPaste);
+
+  
 
   // Testar a função:
 
   // Variáveis para armazenar as posições encontradas
   int px, py;
 
-  // Testar a função ImageLocateSubImage na imagem grande
+  // Testar a função ImageLocateSubImage na imagem 1
 
   InstrReset();
   printf("\n");
-  printf("Imagem grande:\n");
-  if (ImageLocateSubImage(imageLarge, &px, &py, imageToPaste)) {
-      printf("Subimagem encontrada na imagem grande. Posição: (%d, %d)\n", px, py);
+  printf("Imagem 1:\n");
+  if (ImageLocateSubImage(image1, &px, &py, imageToPaste)) {
+      printf("Subimagem encontrada na imagem 1. Posição: (%d, %d)\n", px, py);
   } else {
-      printf("Subimagem não encontrada na imagem grande.\n");
+      printf("Subimagem não encontrada na imagem 1.\n");
   }
   InstrPrint();
 
-  // Testar a função ImageLocateSubImage na imagem média
+  // Testar a função ImageLocateSubImage na imagem 2
 
   InstrReset();
   printf("\n");
-  printf("Imagem média:\n");
-  if (ImageLocateSubImage(imageMedium, &px, &py, imageToPaste)) {
-      printf("Subimagem encontrada na imagem média. Posição: (%d, %d)\n", px, py);
+  printf("Imagem 2:\n");
+  if (ImageLocateSubImage(image2, &px, &py, imageToPaste)) {
+      printf("Subimagem encontrada na imagem 2. Posição: (%d, %d)\n", px, py);
   } else {
-      printf("Subimagem não encontrada na imagem média.\n");
+      printf("Subimagem não encontrada na imagem 2.\n");
   }
   InstrPrint();
 
-  // Testar a função ImageLocateSubImage na imagem pequena
+  // Testar a função ImageLocateSubImage na imagem 3
 
   InstrReset();
   printf("\n");
-  printf("Imagem pequena:\n");
-  if (ImageLocateSubImage(imageSmall, &px, &py, imageToPaste)) {
-      printf("Subimagem encontrada na imagem pequena. Posição: (%d, %d)\n", px, py);
+  printf("Imagem 3:\n");
+  if (ImageLocateSubImage(image3, &px, &py, imageToPaste)) {
+      printf("Subimagem encontrada na imagem 3. Posição: (%d, %d)\n", px, py);
   } else {
-      printf("Subimagem não encontrada na imagem pequena.\n");
+      printf("Subimagem não encontrada na imagem 3.\n");
+  }
+  InstrPrint();
+
+  // Testar a função ImageLocateSubImage na imagem 4
+
+  InstrReset();
+  printf("\n");
+  printf("Imagem 4:\n");
+  if (ImageLocateSubImage(image4, &px, &py, imageToPaste)) {
+      printf("Subimagem encontrada na imagem 4. Posição: (%d, %d)\n", px, py);
+  } else {
+      printf("Subimagem não encontrada na imagem 4.\n");
+  }
+  InstrPrint();
+
+  // Testar a função ImageLocateSubImage na imagem 5
+
+  InstrReset();
+  printf("\n");
+  printf("Imagem 5:\n");
+  if (ImageLocateSubImage(image5, &px, &py, imageToPaste)) {
+      printf("Subimagem encontrada na imagem 5. Posição: (%d, %d)\n", px, py);
+  } else {
+      printf("Subimagem não encontrada na imagem 5.\n");
   }
   InstrPrint();
 
   ImageDestroy(&imageToPaste);
-  ImageDestroy(&imageLarge);
-  ImageDestroy(&imageMedium);
-  ImageDestroy(&imageSmall);
+  ImageDestroy(&image1);
+  ImageDestroy(&image2);
+  ImageDestroy(&image3);
+  ImageDestroy(&image4);
+  ImageDestroy(&image5);
   return 0;
 }
 
