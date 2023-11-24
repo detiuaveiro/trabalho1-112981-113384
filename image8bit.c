@@ -149,22 +149,29 @@ void ImageInit(void) { ///
   InstrName[0] = "pixmem";  // InstrCount[0] will count pixel array acesses
   // Name other counters here...
 
-  InstrName[1] = "comparision"; // InstrCount[1] will count comparisions
-  InstrName[2] = "operations";
+  InstrName[1] = "comparisions";  // InstrCount[1] vai contar o nº de comparações
+  InstrName[2] = "operations";    // InstrCount[2] vai contar o nº de operações
   
 }
+
 
 // Macros to simplify accessing instrumentation counters:
 #define PIXMEM InstrCount[0]
 // Add more macros here...
-
-#define COMPARISION InstrCount[1]
-#define OPERATIONS InstrCount[2]
+#define COMPARISIONS InstrCount[1]  // comparisions macro
+#define OPERATIONS InstrCount[2]    // operations macro
 
 // TIP: Search for PIXMEM or InstrCount to see where it is incremented!
 
 
+
+/* ===================================================================================================================================== */
+
+
+
 /// Image management functions
+/* ----------------------------------------------------------------- */
+
 
 /// Create a new black image.
 ///   width, height : the dimensions of the new image.
@@ -180,30 +187,40 @@ Image ImageCreate(int width, int height, uint8 maxval) { ///
   assert (0 < maxval && maxval <= PixMax);
   // Insert your code here!
 
-  Image img = (Image)malloc(sizeof(struct image)); // aloca memória para a Imagem
-  if (img == NULL) {
+  /* Alocar memória para imagem */
+  Image img = (Image)malloc(sizeof(struct image)); 
+  /* Verificar a correta alocação de memória */
+  if (img == NULL) { 
+    // errno é automaticamente definido de acordo com o erro ocorrido             
     errCause = "Memory allocation error";
     return NULL;
   }
 
-  // inicializa as variáveis da imagem
+  /* Declarar as variáveis da imagem */ 
   img->width = width;  
   img->height = height;
   img->maxval = maxval;
 
-  img->pixel = (uint8*)malloc(width*height*sizeof(uint8)); // aloca memória para o array de pixeis
+  /* Alocar memória para o array que conterá os valores dos píxeis */
+  img->pixel = (uint8*)malloc(width*height*sizeof(uint8)); 
+  /* Verificar a correta alocação de memória */ 
   if (img->pixel == NULL) {
+    // errno é automaticamente definido de acordo com o erro ocorrido
     errCause = "Memory allocation error";
-    free(img);
+    free(img);    // libertar a memória previamente alocada para a imagem
     return NULL;
   }
 
+  /* Inicializar o array de pixeis a 0 (0->preto e 255->branco) */
   for (int i = 0; i < width*height; i++) {
-    img->pixel[i] = 0; // inicializa o array de pixeis a 0 (0->preto e 255->branco)
+    img->pixel[i] = 0; 
   }
 
+  /* Devolver a imagem criada */
   return img;
 }
+
+
 
 /// Destroy the image pointed to by (*imgp).
 ///   imgp : address of an Image variable.
@@ -214,21 +231,31 @@ void ImageDestroy(Image* imgp) { ///
   assert (imgp != NULL);
   // Insert your code here!
 
-  free((*imgp)->pixel); // liberta a memória do array de pixeis
-  free(*imgp); // liberta a memória da imagem
+  /* Libertar a memória reservada para o array de pixeis da imagem */
+  free((*imgp)->pixel); 
+  /* Libertar a memória reservada para a imagem */
+  free(*imgp); 
 
-  // preservar a variável errno:
-  errsave = errno;
+  /* Preservar a variável errno ????????????????????????????????????????????????????????????????????????????????????? */
+  //errsave = errno; -> acho que não é aqui que se salvagurada, mas sim quando se chama a função, como na função ImageLoad()
 
-  *imgp = NULL; // ponteiro passa a apontar para NULL
+  /* Para evitar erros, colocar o ponteiro a apontar para NULL */
+  *imgp = NULL; 
   
 }
+
+
+
+/* ===================================================================================================================================== */
+
 
 
 /// PGM file operations
 
 // See also:
 // PGM format specification: http://netpbm.sourceforge.net/doc/pgm.html
+/* ----------------------------------------------------------------- */
+
 
 // Match and skip 0 or more comment lines in file f.
 // Comments start with a # and continue until the end-of-line, inclusive.
@@ -241,6 +268,8 @@ static int skipComments(FILE* f) {
   }
   return i;
 }
+
+
 
 /// Load a raw PGM file.
 /// Only 8 bit PGM files are accepted.
@@ -281,6 +310,8 @@ Image ImageLoad(const char* filename) { ///
   return img;
 }
 
+
+
 /// Save image to PGM file.
 /// On success, returns nonzero.
 /// On failure, returns 0, errno/errCause are set appropriately, and
@@ -304,9 +335,16 @@ int ImageSave(Image img, const char* filename) { ///
 }
 
 
+
+/* ===================================================================================================================================== */
+
+
+
 /// Information queries
 
 /// These functions do not modify the image and never fail.
+/* ----------------------------------------------------------------- */
+
 
 /// Get image width
 int ImageWidth(Image img) { ///
@@ -314,17 +352,23 @@ int ImageWidth(Image img) { ///
   return img->width;
 }
 
+
+
 /// Get image height
 int ImageHeight(Image img) { ///
   assert (img != NULL);
   return img->height;
 }
 
+
+
 /// Get image maximum gray level
 int ImageMaxval(Image img) { ///
   assert (img != NULL);
   return img->maxval;   // máximo valor definido na criação da função, mas pode nõ ser o maior nos píxeis
 }
+
+
 
 /// Pixel stats
 /// Find the minimum and maximum gray levels in image.
@@ -335,19 +379,24 @@ void ImageStats(Image img, uint8* min, uint8* max) { ///
   assert (img != NULL);
   // Insert your code here!
 
-  int width = ImageWidth(img);    // obter o nº de píxeis na largura
-  int height = ImageHeight(img);  // obter o nº de píxeis na altura
+  /* Obter o nº de píxeis na largura (width) e altura (height) */
+  int width = ImageWidth(img);    
+  int height = ImageHeight(img); 
 
   *min = PixMax; // nível mais alto de cinza possível (branco)
-  *max = 0; // nível mais baixo de cinza possível (preto)
+  *max = 0;      // nível mais baixo de cinza possível (preto)
 
-  for (int y = 0; y < height; y++) {  // encontrar o mínimo e o máximo, percorrendo todos os píxeis
+  /* Encontrar o mínimo e o máximo, percorrendo todos os píxeis da imagem */
+  for (int y = 0; y < height; y++) {  
         for (int x = 0; x < width; x++) {
             uint8 pixelValue = ImageGetPixel(img, x, y);
 
+            /* Caso o valor do píxel seja menor do que o valor mínimo até ao momento, atualiza "min" */
             if (pixelValue < *min) {
                 *min = pixelValue;
             }
+
+            /* Caso o valor do píxel seja maior do que o valor máximo até ao momento, atualiza "max" */
             if (pixelValue > *max) {
                 *max = pixelValue;
             }
@@ -355,31 +404,49 @@ void ImageStats(Image img, uint8* min, uint8* max) { ///
     }
 }
 
+
+
 /// Check if pixel position (x,y) is inside img.
 int ImageValidPos(Image img, int x, int y) { ///
   assert (img != NULL);
+  /* Verificar se está dentro dos limites da imagem */
   return (0 <= x && x < img->width) && (0 <= y && y < img->height);
 }
+
+
 
 /// Check if rectangular area (x,y,w,h) is completely inside img.
 int ImageValidRect(Image img, int x, int y, int w, int h) { ///
   assert (img != NULL);
   // Insert your code here!
 
+  /* Obter a largura e altura, respetivamente -> comentado porque alterou-se o modo de fazer a condição
   int imgWidth = ImageWidth(img);
   int imgHeight = ImageHeight(img);
+  */
+  /*
+    - x é a abscissa do canto superior esquerdo da área retangular
+    - y é a ordenada do canto superior esquerdo da área retangular
+    - w é a largura
+    - h é a altura
+  */
 
-  // x é a abscissa do canto superior esquerdo da área retangular
-  // y é a ordenada do canto superior esquerdo da área retangular
-  // w é a largura
-  // h é a altura
-
-  if (x >= 0 && y >= 0 && x + w <= imgWidth && y + h <= imgHeight) {
-    return 1; // está contida na imagem
+  /* Verificar se os limites estão dentro da imagem */  
+  // ANTES: if (x >= 0 && y >= 0 && x + w < imgWidth && y + h < imgHeight) {
+  if (ImageValidPos(img, x, y) && ImageValidPos(img, x, y+h) && ImageValidPos(img, x+w, y) && ImageValidPos(img, x+w, y+w)) {
+    /* Se a condição se verificar, significa que o píxel está contido na imagem */
+    return 1; 
   }
 
-  return 0; // não está contida na imagem
+  /* Se a condição acima der falsa, significa que a área retangular não está contida na imagem */
+  return 0; 
 }
+
+
+
+/* ===================================================================================================================================== */
+
+
 
 /// Pixel get & set operations
 
@@ -387,6 +454,8 @@ int ImageValidRect(Image img, int x, int y, int w, int h) { ///
 /// in the image.
 /// These are very simple, but fundamental operations, which may be used to 
 /// implement more complex operations.
+/* ----------------------------------------------------------------- */
+
 
 // Transform (x, y) coords into linear pixel index.
 // This internal function is used in ImageGetPixel / ImageSetPixel. 
@@ -396,23 +465,35 @@ static inline int G(Image img, int x, int y) {
   // Insert your code here!
 
   assert(img != NULL);
-  assert(0 <= x && x < img->width);
-  assert(0 <= y && y < img->height);
+  assert(ImageValidPos(img, x, y));
+  /* 
+    ANTES:
+    assert(0 <= x && x < img->width);
+    assert(0 <= y && y < img->height);
+  */ 
 
-  index = y * img->width + x; // ao multiplicar pela largura obtemos o número de pixeis 
-                              // que estão antes da linha y, e depois somamos o número de pixeis que estão antes da coluna x
+  /*
+    Ao multiplicar pela largura obtemos o número de pixeis que estão antes da linha y, 
+    e depois somamos o número de pixeis que estão antes da coluna x
+  */
+  index = y * img->width + x; 
 
-  assert (0 <= index && index < img->width*img->height);  // verificar pós-condições
+  /* Verificar pós-condições */
+  assert(0 <= index && index < img->width*img->height); 
   return index;
 }
 
+
+
 /// Get the pixel (level) at position (x,y).
 uint8 ImageGetPixel(Image img, int x, int y) { ///
-  assert (img != NULL);
-  assert (ImageValidPos(img, x, y));
+  assert(img != NULL);
+  assert(ImageValidPos(img, x, y));
   PIXMEM += 1;  // count one pixel access (read)
   return img->pixel[G(img, x, y)];
 } 
+
+
 
 /// Set the pixel at position (x,y) to new level.
 void ImageSetPixel(Image img, int x, int y, uint8 level) { ///
@@ -423,36 +504,46 @@ void ImageSetPixel(Image img, int x, int y, uint8 level) { ///
 } 
 
 
+
+/* ===================================================================================================================================== */
+
+
+
 /// Pixel transformations
 
 /// These functions modify the pixel levels in an image, but do not change
 /// pixel positions or image geometry in any way.
 /// All of these functions modify the image in-place: no allocation involved.
 /// They never fail.
+/* ----------------------------------------------------------------- */
 
 
 /// Transform image to negative image.
 /// This transforms dark pixels to light pixels and vice-versa,
 /// resulting in a "photographic negative" effect.
-void ImageNegative(Image img) { ///
+void ImageNegative(Image img) { 
   assert (img != NULL);
   // Insert your code here!
 
-  int width = ImageWidth(img);      // obter a largura
-  int height = ImageHeight(img);    // obter a altura
+  /* Obter a largura e a altura, respetivamente */
+  int width = ImageWidth(img);     
+  int height = ImageHeight(img);   
 
-  // percorrer todos os píxeis
+  /* Percorrer todos os píxeis, fazendo as operações um a um */
   for (int y = 0; y < height; y++) {  
         for (int x = 0; x < width; x++) {
-            uint8 pixelValue = ImageGetPixel(img, x, y);  // obter o valor de de cinza de cada um
+            /* Obter o valor de cinza de cada um */
+            uint8 pixelValue = ImageGetPixel(img, x, y);  // 
 
-            uint8 negativeValue = PixMax - pixelValue;  // ao fazer a diferença com o valor máximo 
-                                                        // possível passamos para o seu "simetrico"/negativo num intervalo de [0, 255]
+            /* Ao fazer a diferença com o valor máximo possível (255->branco) passamos para o seu "simétrico"/negativo num intervalo de [0, 255] */
+            uint8 negativeValue = PixMax - pixelValue;  
 
             ImageSetPixel(img, x, y, negativeValue);
         }
     }
 }
+
+
 
 /// Apply threshold to image.
 /// Transform all pixels with level<thr to black (0) and
@@ -461,25 +552,37 @@ void ImageThreshold(Image img, uint8 thr) { ///
   assert (img != NULL);
   // Insert your code here!
 
-  int width = ImageWidth(img);      // obter a largura
-  int height = ImageHeight(img);    // obter a altura
-  uint8 maxval = ImageMaxval(img);  // obter o máximo valor de cinzento na imagem
+  /* Obter a largura, a altura e o máximo valor de cinza na imagem, respetivamente */
+  int width = ImageWidth(img);      
+  int height = ImageHeight(img);   
+  uint8 maxval = ImageMaxval(img);  
 
-  // percorrer todos os píxeis
+  /* Percorrer todos os píxeis, fazendo as operações um a um */
   for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
-            uint8 pixelValue = ImageGetPixel(img, x, y);  // obter o valor de cinza do píxel
+            /* Obter o valor de cinza de cada um */
+            uint8 pixelValue = ImageGetPixel(img, x, y);  
+
+            /* 
+              Para simplificar a leitura do código, primeiro atribui-se ao novo valor de píxel a cor preta (thrValue = 0),
+              e depois verifica-se se o valor original está abaixo ou acima do valor em "thr", fazendo, ou não, as alterações 
+              necessárias de acordo com essa condição
+            */
 
             uint8 thrValue = 0;
 
             if (pixelValue >= thr) {
-              thrValue = maxval;  // se for >= fica o maior tom de cinza, senão fica preto (como foi inicializada a variável thrValue)
+              /* Se for >= fica com o maior tom de cinza (branco), senão fica preto (como foi inicializada a variável thrValue) */
+              thrValue = maxval;   
             }
 
+            /* Fazer set do píxel com o valor novo */
             ImageSetPixel(img, x, y, thrValue);
         }
     }
 }
+
+
 
 /// Brighten image by a factor.
 /// Multiply each pixel level by a factor, but saturate at maxval.
@@ -490,24 +593,35 @@ void ImageBrighten(Image img, double factor) { ///
   assert (factor >= 0.0);
   // Insert your code here!
 
-  int width = ImageWidth(img);      // obter a largura 
-  int height = ImageHeight(img);    // obter a altura
-  uint8 maxval = ImageMaxval(img);  // obter o tom de cinza mais elevado
+  /* Obter a largura, a altura e o máximo valor de cinza na imagem, respetivamente */
+  int width = ImageWidth(img);     
+  int height = ImageHeight(img);   
+  uint8 maxval = ImageMaxval(img); 
 
-  // percorrer todos os píxeis
+  /* Percorrer todos os píxeis, fazendo as operações um a um */
   for (int y = 0; y < height; y++) {
     for (int x = 0; x < width; x++) {
-      uint8 pixelValue = ImageGetPixel(img, x, y);  // obter o valor de de cinza de cada um
+      /* Obter o valor de cinza de cada um */
+      uint8 pixelValue = ImageGetPixel(img, x, y);  
 
-      double newPixelValue = (double)pixelValue * factor + 0.5; // é feita a soma para arredondar
+      /* Fazer a multiplicação do valor original do píxel pelo fator inserido (soma-se 0.5 para arredondar) */
+      double newPixelValue = (double) pixelValue * factor + 0.5; 
 
-      if (newPixelValue > maxval) { // no caso de ultrapassar o maxval
-        newPixelValue = maxval;     // fica com  o valor deste
+      /* Para o caso do produto anterior ultrapassar maval, faz-se a verificação e alteração, se necessário, para este limite */
+      if (newPixelValue > maxval) { 
+        newPixelValue = maxval;     
       }
-      ImageSetPixel(img, x, y, (uint8)newPixelValue);
+
+      /* Fazer set do píxel com o valor novo */
+      ImageSetPixel(img, x, y, (uint8) newPixelValue);
     }
   }
 }
+
+
+
+/* ===================================================================================================================================== */
+
 
 
 /// Geometric transformations
@@ -522,6 +636,8 @@ void ImageBrighten(Image img, double factor) { ///
 
 // Implementation hint: 
 // Call ImageCreate whenever you need a new image!
+/* ----------------------------------------------------------------- */
+
 
 /// Rotate an image.
 /// Returns a rotated version of the image.
@@ -535,27 +651,35 @@ Image ImageRotate(Image img) { ///
   assert (img != NULL);
   // Insert your code here!
 
-  int imgWidth = ImageWidth(img);   // obter a largura
-  int imgHeight = ImageHeight(img); // obter a altura
-  int imgMaxVal = ImageMaxval(img); // obter o nível máximo de cinza na imagem
+  /* Obter a largura, a altura e o máximo valor de cinza na imagem, respetivamente */
+  int imgWidth = ImageWidth(img);   
+  int imgHeight = ImageHeight(img);
+  int imgMaxVal = ImageMaxval(img); 
 
-  // tem de ser criada uma nova imagem, porque a original não pode ser modificada
-  Image rotatedImage = ImageCreate(imgHeight, imgWidth, imgMaxVal); // neste caso, preciso de trocar a altura pela largura (caso a imagem não seja quadrada)
+  /* 
+    Tem de ser criada uma nova imagem, porque a original não pode ser modificada 
+    [neste caso, troca-se a altura pela largura na ordem dos argumentos em ImageCreate() (caso a imagem não seja quadrada)]
+  */
+  Image rotatedImage = ImageCreate(imgHeight, imgWidth, imgMaxVal); 
 
+  /* Verificar a correta criação da imagem */
   if (rotatedImage == NULL) {
-    errCause = "Failed to create a new image.";
+    // errno é automaticamente definido de acordo com o erro ocorrido
+    errCause = "Failed to create a new image in ImageCreate().";
     return NULL;
   }
 
-  // percorrer todos os píxeis da imagem original
+  /* Percorrer todos os píxeis, fazendo as operações um a um */
   for (int x=0; x<imgWidth; x++) {
     for (int y=0; y<imgHeight; y++) {
+      /* Obter o valor de cinza de cada um */
+      uint8 pixelValue = ImageGetPixel(img, x, y); 
 
-      uint8 pixelValue = ImageGetPixel(img, x, y);  // obter o valor do píxel na posição (x, y)
-
-      // depois de desenhar e de visualizar as rotações, chegou-se à conclusão que a abcissa do ponto depois da rotção correspondia 
-      // sempre à ordenada do píxel original, e que a ordenada do ponto depois da rotação era também ela sempre igual à diferença entre 
-      // o maior índice da largura da imagem original e o valor da abcissa do píxel original
+      /*
+        Depois de se desenhar e de se visualizarem as rotações, chegou-se à conclusão de que a abcissa do ponto, após a rotação, correspondia 
+        sempre à ordenada do píxel original (y), e que a ordenada do ponto depois da rotação era sempre igual à diferença entre 
+        o maior índice da largura da imagem original e o valor da abcissa do píxel original ((imgWidth-1)-x), como se pode ver a seguir:
+      */
       ImageSetPixel(rotatedImage, y, (imgWidth-1)-x, pixelValue);   
 
     }  
@@ -563,6 +687,8 @@ Image ImageRotate(Image img) { ///
 
   return rotatedImage;
 }
+
+
 
 /// Mirror an image = flip left-right.
 /// Returns a mirrored version of the image.
@@ -572,37 +698,43 @@ Image ImageRotate(Image img) { ///
 /// (The caller is responsible for destroying the returned image!)
 /// On failure, returns NULL and errno/errCause are set accordingly.
 Image ImageMirror(Image img) { ///
-  assert (img != NULL);
+  assert(img != NULL);
   // Insert your code here!
   
-  int imgWidth = ImageWidth(img);   // obter a largura
-  int imgHeight = ImageHeight(img); // obter a altura
-  int imgMaxVal = ImageMaxval(img); // obter o nível máximo de cinza na imagem
+  /* Obter a largura, a altura e o máximo valor de cinza na imagem, respetivamente */
+  int imgWidth = ImageWidth(img);   
+  int imgHeight = ImageHeight(img); 
+  int imgMaxVal = ImageMaxval(img); 
 
-  // tem de ser criada uma nova imagem, porque a original não pode ser modificada
+  /* Tem de ser criada uma nova imagem igual à original, porque a original não pode ser modificada */
   Image mirroredImage = ImageCreate(imgWidth, imgHeight, imgMaxVal);
-
+  /* Verificar a correta criação da imagem */
   if (mirroredImage == NULL) {
+    // errno é automaticamente definido de acordo com o erro ocorrido
     errCause = "Failed to create a new image.";
     return NULL;
   }
 
-  // para espelhar uma imagem, precisamos de garantir que os píxeis da altura (y) permanecem
-  // como estavam (na mesma linha), e que a ordem dos píxeis da largura (x) seja invertida
+  /*
+    Para espelhar uma imagem, precisamos de garantir que os píxeis da altura (y) permanecem
+    como estavam (na mesma linha), e que a ordem dos píxeis da largura (x) seja invertida
+  */
 
+  /* Percorrer todos os píxeis, fazendo as operações um a um */
   for (int x=0; x<imgWidth; x++) {
     for (int y=0; y<imgHeight; y++) {
+      /* Obter o valor de cinza de cada um (da imagem original) */
+      uint8 pixelValue = ImageGetPixel(img, x, y); 
 
-      uint8 pixelValue = ImageGetPixel(img, x, y);  // obter o valor do píxel na posição (x, y) da imagem original
-
-      // copiar o valor do píxel na posição (x, y) da imagem original para a coordenada simétrica de x, na mesma linha, na mirroredImage
-      ImageSetPixel(mirroredImage, (imgWidth-1) - x, y, pixelValue);    
-                                                                      
+      /* Copiar o valor do píxel na posição (x, y) da imagem original para a coordenada simétrica de x, na mesma linha, na mirroredImage */
+      ImageSetPixel(mirroredImage, (imgWidth-1) - x, y, pixelValue);                                                                   
     }  
   }
 
   return mirroredImage;
 }
+
+
 
 /// Crop a rectangular subimage from img.
 /// The rectangle is specified by the top left corner coords (x, y) and
@@ -619,58 +751,74 @@ Image ImageMirror(Image img) { ///
 Image ImageCrop(Image img, int x, int y, int w, int h) { ///
   assert (img != NULL);
   assert (ImageValidRect(img, x, y, w, h));
-  
   // Insert your code here!
 
-  // tem de ser criada uma nova imagem, porque a original não pode ser modificada
+  /* 
+    Tem de ser criada uma nova imagem, porque a original não pode ser modificada 
+    Esta já será criada com as novas características da imahem cortada
+  */
   Image croppedImage = ImageCreate(w, h, ImageMaxval(img));
-
+  /* Verificar a correta criação da imagem */
   if (croppedImage == NULL) {
+    // errno é automaticamente definido de acordo com o erro ocorrido
     errCause = "Failed to create a new image.";
     return NULL;
   }
 
-  // percorrer todos os píxeis presentes no retângulo a recortar na imagem original
+  /* Percorrer todos os píxeis da imagem cortada, fazendo as operações um a um */
   for (int new_y = 0; new_y < h; new_y++) {
     for (int new_x = 0; new_x < w; new_x++) {
-      uint8 pixelValue = ImageGetPixel(img, new_x + x, new_y + y); // obter o valor do píxel na posição (x, y) da imagem original
-
-      // transferir o valor do píxel para a posição (new_x, new_y) da imagem cortada
+      /* Para cada píxel correspondente na imagem original, obtemos o seu valor, para depois colocá-lo na posição correta da imagem cortada */
+      uint8 pixelValue = ImageGetPixel(img, new_x + x, new_y + y);
+      
+      /* Transferir o valor do píxel para a posição (new_x, new_y) da imagem cortada */
       ImageSetPixel(croppedImage, new_x, new_y, pixelValue);
     }
   }
 
   return croppedImage;
-
 }
 
 
+
+/* ===================================================================================================================================== */
+
+
+
 /// Operations on two images
+/* ----------------------------------------------------------------- */
+
 
 /// Paste an image into a larger image.
 /// Paste img2 into position (x, y) of img1.
 /// This modifies img1 in-place: no allocation involved.
 /// Requires: img2 must fit inside img1 at position (x, y).
 void ImagePaste(Image img1, int x, int y, Image img2) { ///
-  assert (img1 != NULL);
-  assert (img2 != NULL);
-  assert (ImageValidRect(img1, x, y, img2->width, img2->height));
+  assert(img1 != NULL);
+  assert(img2 != NULL);
+  assert(ImageValidRect(img1, x, y, img2->width, img2->height));
   // Insert your code here!
 
-  int img2Width = ImageWidth(img2);   // obter a largura da imagem a ser colada
-  int img2Height = ImageHeight(img2); // obter a altura da imagem a ser colada
+  /* Obter o nº de píxeis na largura e altura da imagem a ser colada */
+  int img2Width = ImageWidth(img2);   
+  int img2Height = ImageHeight(img2);
 
-  // correr todos os píxeis da imagem a ser colada
-  for (int abcissa=0; abcissa < img2Width; abcissa++) {
-    for (int ordenada=0; ordenada < img2Height; ordenada++) {
-
-        uint8 img2PixelValue = ImageGetPixel(img2, abcissa, ordenada);  // obter o valor do píxel na posição (abcissa, ordenada) na imagem a ser colada
+  /* Percorrer todos os píxeis da imagem a ser colada */
+  for (int abcissa = 0; abcissa < img2Width; abcissa++) {
+    for (int ordenada = 0; ordenada < img2Height; ordenada++) {
+        /* Obter o valor do píxel na posição (abcissa, ordenada) da imagem a ser colada */
+        uint8 img2PixelValue = ImageGetPixel(img2, abcissa, ordenada); 
    
-        // para colar no sítio certo, têm de ser feitas as somas x+abcissa e y+ordenada, o valor obtido acima é tranferido para estas coordenadas na imagem grande
+        /*
+          Para colar no sítio certo, têm de ser feitas as somas x+abcissa e y+ordenada, 
+          o valor obtido acima é tranferido para estas coordenadas na imagem original
+        */
         ImageSetPixel(img1, x+abcissa, y+ordenada, img2PixelValue);
     }
   }
 }
+
+
 
 /// Blend an image into a larger image.
 /// Blend img2 into position (x, y) of img1.
@@ -679,30 +827,38 @@ void ImagePaste(Image img1, int x, int y, Image img2) { ///
 /// alpha usually is in [0.0, 1.0], but values outside that interval
 /// may provide interesting effects.  Over/underflows should saturate.
 void ImageBlend(Image img1, int x, int y, Image img2, double alpha) { ///
-  assert (img1 != NULL);
-  assert (img2 != NULL);
-  assert (ImageValidRect(img1, x, y, img2->width, img2->height));
+  assert(img1 != NULL);
+  assert(img2 != NULL);
+  assert(ImageValidRect(img1, x, y, img2->width, img2->height));
   // Insert your code here!
 
-  int img2Width = ImageWidth(img2);   // obter a largura da imagem a ser misturada
-  int img2Height = ImageHeight(img2); // obter a altura da imagem a ser misturada
+  /* Obter o nº de píxeis na largura e altura da imagem a ser misturada */
+  int img2Width = ImageWidth(img2);   
+  int img2Height = ImageHeight(img2); 
 
-  // correr todos os píxeis da imagem a ser misturada
-  for (int abcissa=0; abcissa < img2Width; abcissa++) {
-    for (int ordenada=0; ordenada < img2Height; ordenada++) {
+  /* Perorrer todos os píxeis da imagem a ser misturada */
+  for (int abcissa = 0; abcissa < img2Width; abcissa++) {
+    for (int ordenada = 0; ordenada < img2Height; ordenada++) {
+        /* Obter o valor do píxel na posição (abcissa, ordenada) na imagem a ser misturada */
+        uint8 img2PixelValue = ImageGetPixel(img2, abcissa, ordenada);  
 
-        uint8 img2PixelValue = ImageGetPixel(img2, abcissa, ordenada);      // obter o valor do píxel na posição (abcissa, ordenada) na imagem a ser misturada
-        // obter o valor do píxel na posição (x+abcissa, y+ordenada) na imagem grande (desta maneira podemos posicionar a imagem pequena no sítio correto)
+        /* Obter o valor do píxel na posição (x+abcissa, y+ordenada) na imagem grande (desta maneira podemos posicionar a imagem pequena no sítio correto) */ 
         uint8 img1PixelValue = ImageGetPixel(img1, x+abcissa, y+ordenada);
 
+         
+        /* Aplicar a fórmula que nos permite obter, através do grau de opacidade da imagem 2 (alpha), o resultado de cada píxel depois da mistura */
         double img2NewPixelValue = (1 - alpha) * img1PixelValue + alpha * img2PixelValue + 0.5;   
    
-        // no píxel obtido na imagem original, substitui-se o seu valor pela exxpressão: (1 - alpha) * img1PixelValue + alpha * img2PixelValue + 0.5 
-        // onde "alpha" indica o grau de opacidade da imagem pequena: 0.0 para não aparecer a pequena, 1.0 para a pequena aparecer opaca por cima da grande
+        /*
+          No píxel obtido na imagem original, substitui-se o seu valor pelo calculado em "img2NewPixelValue", onde "alpha" indica o grau de 
+          opacidade da imagem pequena: 0.0 para não aparecer a pequena; 1.0 para a pequena aparecer opaca por cima da grande
+        */ 
         ImageSetPixel(img1, x+abcissa, y+ordenada, (uint8) img2NewPixelValue);
     }
   }
 }
+
+
 
 /// Compare an image to a subimage of a larger image.
 /// Returns 1 (true) if img2 matches subimage of img1 at pos (x, y).
@@ -713,23 +869,27 @@ int ImageMatchSubImage(Image img1, int x, int y, Image img2) { ///
   assert (ImageValidPos(img1, x, y));
   // Insert your code here! -> vou usar como píxel inicial o do canto sup esquerdo da img2
 
-  int img2Width = ImageWidth(img2);   // obter a largura da imagem a ser comparada (pequena)
-  int img2Height = ImageHeight(img2); // obter a altura da imagem a ser comparada (pequena)
+  /* Obter o nº de píxeis na largura e altura da imagem a ser comparada (pequena) */
+  int img2Width = ImageWidth(img2);   
+  int img2Height = ImageHeight(img2); 
 
-  if (!ImageValidRect(img1, x, y, img2Width-1, img2Height-1)) // verificar se é possível a imagem 2 estar contida na imagem 1
+  /* Verificar se é possível a imagem 2 estar contida na imagem 1 */
+  if (!ImageValidRect(img1, x, y, img2Width-1, img2Height-1)) 
     return 0; 
 
-  // percorrer todos os píxeis da imagem pequena
+  /* Percorrer todos os píxeis da imagem pequena */
   for (int abcissa=0; abcissa<img2Width; abcissa++) {
     for (int ordenada=0; ordenada<img2Height; ordenada++) {
+        /* Obter o valor do píxel na posição (abcissa, ordenada) da imagem pequena a ser comparada (pequena) */
+        uint8 img2PixelValue = ImageGetPixel(img2, abcissa, ordenada);   
 
-        uint8 img2PixelValue = ImageGetPixel(img2, abcissa, ordenada);      // obter o valor do píxel na posição (abcissa, ordenada) da imagem pequena a ser comparada
-        // obter o valor do píxel na posição (x+abcissa, y+ordenada) na imagem grande (correspondente ao píxel na posição (abcissa, ordenada) da imagem pequena)
+        /* Obter o valor do píxel na posição (x+abcissa, y+ordenada) na imagem grande (correspondente ao píxel na posição (abcissa, ordenada) da imagem pequena) */
         uint8 img1PixelValue = ImageGetPixel(img1, x+abcissa, y+ordenada);  
 
-        COMPARISION++; // incrementar o contador de comparações
+        /* Incrementar o contador de comparações (relativamente a "img1PixelValue != img2PixelValue", mais abaixo) */
+        COMPARISIONS++; 
 
-        // caso os dois valores acima não sejam iguais, a igualdade do match falha e a função retorna 0
+        /* Caso os dois valores acima não sejam iguais, a igualdade do match falha e a função retorna 0 */
         if (img1PixelValue != img2PixelValue)
           return 0;
     }
@@ -737,28 +897,34 @@ int ImageMatchSubImage(Image img1, int x, int y, Image img2) { ///
   return 1;
 }
 
+
+
 /// Locate a subimage inside another image.
 /// Searches for img2 inside img1.
 /// If a match is found, returns 1 and matching position is set in vars (*px, *py).
 /// If no match is found, returns 0 and (*px, *py) are left untouched.
 int ImageLocateSubImage(Image img1, int* px, int* py, Image img2) { ///
-  assert (img1 != NULL);
-  assert (img2 != NULL);
+  assert(img1 != NULL);
+  assert(img2 != NULL);
   // Insert your code here!
 
-  int img1Width = ImageWidth(img1);   // obter a largura da imagem grande
-  int img1Height = ImageHeight(img1); // obter a altura da imagem grande
+  /* Obter a altura e a largura da imagem grande */
+  int img1Width = ImageWidth(img1);   
+  int img1Height = ImageHeight(img1); 
 
-  int img2Width = ImageWidth(img2);   // obter a largura da imagem pequena
-  int img2Height = ImageHeight(img2); // obter a altura da imagem pequena
+  /* Obter a altura e a largura da imagem pequena */
+  int img2Width = ImageWidth(img2);   
+  int img2Height = ImageHeight(img2); 
 
-  // percorrer todos os píxeis da imagem grande 
+  /* Percorrer todos os píxeis da imagem grande */
   for (int x=0; x<=img1Width - img2Width; x++) {
     for (int y=0; y<=img1Height - img2Height; y++) { 
-
-      // em cada píxel, usamos a função ImageMatchSubImage() desenvolvida acima para verificar se o retângulo criado a partir do píxel na posição
-      // (x, y) corresponde a uma subimagem na imagem grande;
-      // se corresponder, atribuem-se aos valores dos endereços nos ponteiros px e py os valores de x e y, e a função devolve 1;
+      /*
+        Em cada píxel, usa-se a função ImageMatchSubImage() desenvolvida acima para verificar se o retângulo criado a partir do píxel na posição
+        (x, y) corresponde a uma subimagem na imagem grande;
+        Se corresponder, atribuem-se aos valores dos endereços nos ponteiros px e py os valores de x e y (posição na imagem grande onde foi 
+        encontrada a imagem pequena), e a função devolve 1;
+      */
       if (ImageMatchSubImage(img1, x, y, img2)) {   
         *px = x;      
         *py = y;
@@ -768,71 +934,63 @@ int ImageLocateSubImage(Image img1, int* px, int* py, Image img2) { ///
     }  
   }
 
-  return 0; // se não for encontrada nenhuma correspondência, a função devolve 0
+  /* Se não for encontrada nenhuma correspondência, a função devolve 0 */
+  return 0; 
 }
 
 
+
+/* ===================================================================================================================================== */
+
+
+
 /// Filtering
+/* ----------------------------------------------------------------- */
 
 
-// Esta função calcula a média dos píxeis no retângulo [x-dx, x+dx]x[y-dy, y+dy]
+/* Esta função calcula a média dos píxeis no retângulo [x-dx, x+dx]x[y-dy, y+dy] */
 static uint8 rectMeanCalc(Image img, int x, int y, int dx, int dy, unsigned long **comulativeSum) {
   
-  int imgWidth = ImageWidth(img);   // obter a largura da imagem
-  int imgHeight = ImageHeight(img); // obter a altura da imagem
+  /* Obter a largura e altura máximas da imagem */
+  int imgWidth = ImageWidth(img);   
+  int imgHeight = ImageHeight(img); 
 
-  int xEsquerda = x - dx;           // obter a abcissa do(s) píxel(eis) mais à esquerda no retângulo
-  int yCima = y - dy;               // obter a ordenada do(s) píxel(eis) mais acima no retângulo
-  int xDireita = x + dx;            // obter a abcissa do(s) píxel(eis) mais à direita no retângulo
-  int yBaixo = y + dy;              // obter a ordenada do(s) píxel(eis) mais abaixo no retângulo
+  /* Obter os limites do retângulo na imagem */
+  /*
+    As verificações a seguir (feitas in-line) servem para saber se os limites do retângulo [x-dx, x+dx]x[y-dy, y+dy] ficam dentro da imagem;
+    Caso não fiquem, o respetivo lado é moldado ao limite da imagem (isto tudo, sabendo que o ponto (x, y) está dentro da imagem!)
+  */
+  int xEsquerda = ImageValidPos(img, x - dx, y) ? (x - dx) : 0; 
+  int yCima     = ImageValidPos(img, y - dy, y) ? (y - dy) : 0;     
+  int xDireita  = ImageValidPos(img, x + dx, y) ? (x + dx) : (imgWidth-1); 
+  int yBaixo    = ImageValidPos(img, y + dy, y) ? (y + dy) : (imgHeight-1);  
 
-
-  // as verificações a seguir servem para saber se os limites do retângulo [x-dx, x+dx]x[y-dy, y+dy] ficam dentro da imagem
-  // caso não fiquem, o respetivo lado é moldado ao limite da imagem (isto tudo, sabendo que o ponto (x, y) está dentro da imagem)
-
-  // verificar se a abcissa do(s) píxel(eis) mais à esquerda no retângulo fica dentro da imagem
-  // se não ficar, a mesma passa a ser 0 
-  if (!ImageValidPos(img, xEsquerda, y)) 
-    xEsquerda = 0;
-  
-  // verificar se a abcissa do(s) píxel(eis) mais à direita no retângulo fica dentro da imagem
-  // se não ficar, a mesma passa a ser o índice limite da largura da imagem
-  if (!ImageValidPos(img, xDireita, y)) 
-    xDireita = (imgWidth-1);
-  
-  // verificar se a ordenada do(s) píxel(eis) mais acima no retângulo fica dentro da imagem
-  // se não ficar, a mesma passa a ser 0 
-  if (!ImageValidPos(img, x, yCima)) 
-    yCima = 0;
-  
-  // verificar se a ordenada do(s) píxel(eis) mais abaixo no retângulo fica dentro da imagem
-  // se não ficar, a mesma passa a ser o índice limite da altura da imagem
-  if (!ImageValidPos(img, x, yBaixo)) 
-    yBaixo = (imgHeight-1);
-
+  /* Calcular a área do retângulo */
   int areaRect = (yBaixo-yCima+1)*(xDireita-xEsquerda+1);
 
-  int xEsquerda_aux = xEsquerda;
-  int yCima_aux = yCima;
+  /*
+    Agora são necessárias duas variáveis auxiliares para ser possível calcular o valor dos seguintes píxeis:
+      - um píxel acima deste retângulo, no limite direito do mesmo (xDireita, yCima-1)
+      - um píxel acima deste retângulo, no limite esquerdo do mesmo menos 1 (xEsquerda-1, yCima-1)
+      - um píxel a esquerda deste retângulo, no limite inferior do mesmo (xEsquerda-q, yBaixo)
+    As variáveis terão de ser então: xEsquerda-1 e yCima-1, pois as restantes já se sabem;
+    Além de se fazerem estas atribuiçõees, tem-se também de verificar se os valores auxiliares são válidos dentro da imagem, e
+    é para isso que servem as verificações in-line abaixo. Caso não sejam válidos, mantêm-se os limites da imagem calculados anteriormente:
+  */
+  int xEsquerda_aux = ImageValidPos(img, xEsquerda-1, y) ? xEsquerda-1 : xEsquerda;
+  int yCima_aux     = ImageValidPos(img, yCima-1, y) ? yCima-1 : yCima;
 
-  if (ImageValidPos(img, xEsquerda-1, y)) 
-    xEsquerda_aux = xEsquerda-1;
-
-  if (ImageValidPos(img, yCima-1, y)) 
-    yCima_aux = yCima-1;
-  
-
-
-
+  /* Com as coordenadas obtidas acima, já é possível calcular os valores que integrarão a fórmula do cálculo da média do retângulo: */
   int val1 = comulativeSum[yBaixo][xDireita];  
   int val2 = xEsquerda > 0 ? comulativeSum[yBaixo][xEsquerda_aux] : 0;
   int val3 = yCima > 0 ? comulativeSum[yCima_aux][xDireita] : 0;
   int val4 = (xEsquerda > 0 && yCima > 0) ? comulativeSum[yCima_aux][xEsquerda_aux] : 0;
   
-  int conta = val1-val2-val3+val4;
+  /* Aplicar a fórmula */
+  int conta = val1 - val2 - val3 + val4;
 
 
-  // no fim, devolve a média dos valores dos píxeis do retângulo
+  /* No fim, devolve a média dos valores dos píxeis do retângulo (arredondada através da adição ao numerador de metade do valor do denominador)*/
   return (uint8) (((conta+areaRect/2)/areaRect)); 
   }
 
@@ -850,7 +1008,7 @@ void ImageBlur(Image img, int dx, int dy) { ///
   int imgWidth = ImageWidth(img);   // obter a largura
   int imgHeight = ImageHeight(img); // obter a altura
   int mean; // variável que conterá a média cada iteração
-  unsigned long** cumulativeSum = (unsigned long**)malloc(imgHeight*sizeof(unsigned long*));
+  unsigned long** cumulativeSum = (unsigned long**) malloc(imgHeight*sizeof(unsigned long*));
   for (int i = 0; i < imgHeight; i++) {
     cumulativeSum[i] = (unsigned long*)malloc(imgWidth*sizeof(unsigned long));
   }
