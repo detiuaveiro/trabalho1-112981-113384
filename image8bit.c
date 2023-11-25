@@ -948,7 +948,95 @@ int ImageLocateSubImage(Image img1, int* px, int* py, Image img2) { ///
 /* ----------------------------------------------------------------- */
 
 
-/* Esta função calcula a média dos píxeis no retângulo [x-dx, x+dx]x[y-dy, y+dy] */
+
+/// Blur an image by a applying a (2dx+1)x(2dy+1) mean filter.
+/// Each pixel is substituted by the mean of the pixels in the rectangle
+/// [x-dx, x+dx]x[y-dy, y+dy].
+/// The image is changed in-place.
+//int rectWidth = 2*dx + 1;
+//int rectHeight = 2*dy + 1;
+void ImageBlur(Image img, int dx, int dy) { ///
+  // Insert your code here!
+
+  /* Obter a largura e altura, respetivamente */
+  int imgWidth = ImageWidth(img);   
+  int imgHeight = ImageHeight(img); 
+
+  /* Declaração da variávei que conterá a média de cada retângulo em cada iteração e a soma comulativa dos valores dos píxeis da imagem */
+  int mean; 
+
+  /* 
+    Alocação de memória para o array com os valores de soma cumulativa em cada píxel na altura da imagem; 
+    É ponteiro para ponteiro porque irá ser um array bidimensional (width X height);
+    Ou seja, em cada posição da altura, haverá um array com as posições da largura.
+  */
+  unsigned long** cumulativeSum = (unsigned long**) malloc(imgHeight*sizeof(unsigned long*));
+
+  /* Verificação da correta alocação de memória */
+  if (cumulativeSum == NULL) {
+    // errno automaticamente definido em malloc() de acordo com o erro ocorrido;
+    errCause = "Memory allocation error";
+    /* Caso dê erro, terminar a execução da função */
+    return;
+  }
+
+  /* Percorrer cada píxel da altura, para alocar memória para os arrays da largura */
+  for (int i = 0; i < imgHeight; i++) {
+    /* Alocação de memória para o array com os valores de soma cumulativa em cada píxel na largura da imagem */
+    cumulativeSum[i] = (unsigned long*) malloc(imgWidth*sizeof(unsigned long));
+
+    /* Verificação da correta alocação de memória */
+    if (cumulativeSum[i] == NULL) {
+    // errno automaticamente definido em malloc() de acordo com o erro ocorrido;
+    errCause = "Memory allocation error";
+    /* Caso dê erro, dar free à memória anteriormente alocada com sucesso e terminar a execução da função */
+    free(cumulativeSum); 
+    return;
+    }
+  }
+
+  
+  /* Os seguintes 3 ciclos servem para preencher o array com as somas cumulativas dos valores dos píxeis (pela ordem da diagonal da imagem) */
+  cumulativeSum[0][0] = ImageGetPixel(img, 0, 0);
+  for (int x = 1; x < imgWidth; x++) {
+    cumulativeSum[0][x] = cumulativeSum[0][x - 1] + ImageGetPixel(img, x, 0);
+  }
+
+  for (int y = 1; y < imgHeight; y++) {
+    cumulativeSum[y][0] = cumulativeSum[y - 1][0] + ImageGetPixel(img, 0, y);
+  }
+
+  for (int y = 1; y < imgHeight; y++) {
+    for (int x = 1; x < imgWidth; x++) {
+      cumulativeSum[y][x] = cumulativeSum[y - 1][x] + cumulativeSum[y][x - 1] - cumulativeSum[y - 1][x - 1] + ImageGetPixel(img, x, y);
+    }
+  }
+  /* ------------------- */
+
+
+  /* Percorrer todos os píxeis da imagem grande, substituindo os seus valores pela média do retângulo [x-dx, x+dx]x[y-dy, y+dy] */
+  for (int x=0; x<imgWidth; x++) {
+    for (int y=0; y<imgHeight; y++) {
+
+      /* O cálculo da média é feito recorrendo à função auxiliar rectMeanCalc(), definida mais abaixo, com as devidas explicações */
+      mean = rectMeanCalc(img, x, y, dx, dy, cumulativeSum); 
+
+      /* Substituir o valor do píxel desta iteração pela média calculada acima */
+      ImageSetPixel(img, x, y, mean);
+    }
+  }
+
+  /* Por fim, desalocar a memória utilizada para o array das somas cumulativas */
+  for (int i = 0; i < imgHeight; ++i) {
+    free(cumulativeSum[i]);
+  }
+  free(cumulativeSum);
+  
+}
+
+
+
+/* Esta função (auxiliar) calcula a média dos píxeis no retângulo [x-dx, x+dx]x[y-dy, y+dy] através da soma comulativa */
 static uint8 rectMeanCalc(Image img, int x, int y, int dx, int dy, unsigned long **comulativeSum) {
   
   /* Obter a largura e altura máximas da imagem */
@@ -993,55 +1081,4 @@ static uint8 rectMeanCalc(Image img, int x, int y, int dx, int dy, unsigned long
   /* No fim, devolve a média dos valores dos píxeis do retângulo (arredondada através da adição ao numerador de metade do valor do denominador)*/
   return (uint8) (((conta+areaRect/2)/areaRect)); 
   }
-
-
-
-/// Blur an image by a applying a (2dx+1)x(2dy+1) mean filter.
-/// Each pixel is substituted by the mean of the pixels in the rectangle
-/// [x-dx, x+dx]x[y-dy, y+dy].
-/// The image is changed in-place.
-//int rectWidth = 2*dx + 1;
-//int rectHeight = 2*dy + 1;
-void ImageBlur(Image img, int dx, int dy) { ///
-  // Insert your code here!
-
-  int imgWidth = ImageWidth(img);   // obter a largura
-  int imgHeight = ImageHeight(img); // obter a altura
-  int mean; // variável que conterá a média cada iteração
-  unsigned long** cumulativeSum = (unsigned long**) malloc(imgHeight*sizeof(unsigned long*));
-  for (int i = 0; i < imgHeight; i++) {
-    cumulativeSum[i] = (unsigned long*)malloc(imgWidth*sizeof(unsigned long));
-  }
-
-  cumulativeSum[0][0] = ImageGetPixel(img, 0, 0);
-  for (int x = 1; x < imgWidth; x++) {
-    cumulativeSum[0][x] = cumulativeSum[0][x - 1] + ImageGetPixel(img, x, 0);
-  }
-
-  for (int y = 1; y < imgHeight; y++) {
-    cumulativeSum[y][0] = cumulativeSum[y - 1][0] + ImageGetPixel(img, 0, y);
-  }
-
-  for (int y = 1; y < imgHeight; y++) {
-    for (int x = 1; x < imgWidth; x++) {
-      cumulativeSum[y][x] = cumulativeSum[y - 1][x] + cumulativeSum[y][x - 1] - cumulativeSum[y - 1][x - 1] + ImageGetPixel(img, x, y);
-    }
-  }
-
-  // percorrer todos os píxeis na imagem original
-  for (int x=0; x<imgWidth; x++) {
-    for (int y=0; y<imgHeight; y++) {
-
-      mean = rectMeanCalc(img, x, y, dx, dy, cumulativeSum); 
-
-      // em seguida, substituímos o valor do píxel desta iteração pela média calculada
-      ImageSetPixel(img, x, y, mean);
-    }
-  }
-
-  for (int i = 0; i < imgHeight; ++i) {
-    free(cumulativeSum[i]);
-  }
-  free(cumulativeSum);
-}
 
