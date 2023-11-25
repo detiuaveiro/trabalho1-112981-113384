@@ -9,106 +9,135 @@
 
 int main(int argc, char* argv[]) {
   program_name = argv[0];
-  if (argc != 8) {
-    error(1, 0, "Usage: imageTest input.pgm output.pgm");
-  }
+  
 
   ImageInit();
   
 
   // imagem para colar nas outras 3 imagens
-  Image imageToPaste = ImageLoad(argv[1]);
+  Image imageToPaste = ImageCreate(300, 300, 255);
+  ImageSetPixel(imageToPaste, 299, 299, 255); 
   if (imageToPaste == NULL) {
-    error(2, errno, "Loading %s: %s", argv[1], ImageErrMsg());
+    error(2, errno, "Creating imageToPaste: %s", ImageErrMsg());
   }
 
-  // imagem grande
-  Image imageLarge = ImageLoad(argv[2]);
-  if (imageLarge == NULL) {
-      error(2, errno, "Loading %s: %s", argv[2], ImageErrMsg());
+  Image image1 = ImageCreate(500, 500, 255);
+  ImageSetPixel(image1, 499, 499, 255); 
+  if (image1 == NULL) {
+    error(2, errno, "Creating image1: %s", ImageErrMsg());
   }
 
-  // imagem media
-  Image imageMedium = ImageLoad(argv[3]);
-  if (imageMedium == NULL) {
-      error(2, errno, "Loading %s: %s", argv[3], ImageErrMsg());
+  Image image2 = ImageCreate(450, 450, 255);
+  ImageSetPixel(image2, 449, 449, 255); 
+  if (image2 == NULL) {
+    error(2, errno, "Creating image2: %s", ImageErrMsg());
   }
 
-  // imagem imagem pequena
-  Image imageSmall = ImageLoad(argv[4]);
-  if (imageSmall == NULL) {
-      error(2, errno, "Loading %s: %s", argv[4], ImageErrMsg());
+  Image image3 = ImageCreate(400, 400, 255);
+  ImageSetPixel(image3, 399, 399, 255); 
+  if (image3 == NULL) {
+    error(2, errno, "Creating image3: %s", ImageErrMsg());
   }
 
-  // as seguintes linhas criam as imagens que serão usadas para testar a função ImageLocateSubImage
-  // estas imagens possuem tamanhos diferentes e a subimagem está presente no fim
-  int largeX = (ImageWidth(imageLarge) - ImageWidth(imageToPaste));
-  int largeY = (ImageHeight(imageLarge) - ImageHeight(imageToPaste));
-  ImagePaste(imageLarge, largeX, largeY, imageToPaste);
-
-  int mediumX = (ImageWidth(imageMedium) - ImageWidth(imageToPaste));
-  int mediumY = (ImageHeight(imageMedium) - ImageHeight(imageToPaste));
-  ImagePaste(imageMedium, mediumX, mediumY, imageToPaste);
-
-  int smallX = (ImageWidth(imageSmall) - ImageWidth(imageToPaste));
-  int smallY = (ImageHeight(imageSmall) - ImageHeight(imageToPaste));
-  ImagePaste(imageSmall, smallX, smallY, imageToPaste);
-
-  // dar save apenas para verificar se as imagens criadas eram o que esperavamos para poder testar
-  if (ImageSave(imageLarge, argv[5]) == 0) {
-    error(2, errno, "%s: %s", argv[5], ImageErrMsg());
-  }
-  if (ImageSave(imageMedium, argv[6]) == 0) {
-    error(2, errno, "%s: %s", argv[6], ImageErrMsg());
-  }
-  if (ImageSave(imageSmall, argv[7]) == 0) {
-    error(2, errno, "%s: %s", argv[7], ImageErrMsg());
+  Image image4 = ImageCreate(350, 350, 255);
+  ImageSetPixel(image4, 349, 349, 255); 
+  if (image4 == NULL) {
+    error(2, errno, "Creating image4: %s", ImageErrMsg());
   }
 
-  // Testar a função:
-
-  // Variáveis para armazenar as posições encontradas
   int px, py;
 
-  // Testar a função ImageLocateSubImage na imagem grande
+  printf("Mantém-se o tamanho da imagem a ser colada e varia-se o tamanho da imagem onde se dá paste.\n");
 
   InstrReset();
   printf("\n");
-  printf("Imagem grande:\n");
-  if (ImageLocateSubImage(imageLarge, &px, &py, imageToPaste)) {
-      printf("Subimagem encontrada na imagem grande. Posição: (%d, %d)\n", px, py);
+  printf("Imagem 1 (500x500):\n");
+  if (ImageLocateSubImage(image1, &px, &py, imageToPaste)) {
+      printf("Subimagem encontrada na imagem 1. Posição: (%d, %d)\n", px, py);
   } else {
-      printf("Subimagem não encontrada na imagem grande.\n");
+      printf("Subimagem não encontrada na imagem 1.\n");
   }
   InstrPrint();
 
-  // Testar a função ImageLocateSubImage na imagem média
-
   InstrReset();
   printf("\n");
-  printf("Imagem média:\n");
-  if (ImageLocateSubImage(imageMedium, &px, &py, imageToPaste)) {
-      printf("Subimagem encontrada na imagem média. Posição: (%d, %d)\n", px, py);
+  printf("Imagem 2 (450x450):\n");
+  if (ImageLocateSubImage(image2, &px, &py, imageToPaste)) {
+      printf("Subimagem encontrada na imagem 2. Posição: (%d, %d)\n", px, py);
   } else {
-      printf("Subimagem não encontrada na imagem média.\n");
+      printf("Subimagem não encontrada na imagem 2.\n");
   }
   InstrPrint();
 
-  // Testar a função ImageLocateSubImage na imagem pequena
+  InstrReset();
+  printf("\n");
+  printf("Imagem 3 (400x400):\n");
+  if (ImageLocateSubImage(image3, &px, &py, imageToPaste)) {
+      printf("Subimagem encontrada na imagem 3. Posição: (%d, %d)\n", px, py);
+  } else {
+      printf("Subimagem não encontrada na imagem 3.\n");
+  }
+  InstrPrint();
 
   InstrReset();
   printf("\n");
-  printf("Imagem pequena:\n");
-  if (ImageLocateSubImage(imageSmall, &px, &py, imageToPaste)) {
-      printf("Subimagem encontrada na imagem pequena. Posição: (%d, %d)\n", px, py);
+  printf("Imagem 4 (350x350):\n");
+  if (ImageLocateSubImage(image4, &px, &py, imageToPaste)) {
+      printf("Subimagem encontrada na imagem 4. Posição: (%d, %d)\n", px, py);
   } else {
-      printf("Subimagem não encontrada na imagem pequena.\n");
+      printf("Subimagem não encontrada na imagem 4.\n");
+  }
+  InstrPrint();
+
+  printf("\n");
+  printf("-------------------------------------------------------------------------------\n");
+  printf("Mantém-se o tamanho da imagem onde se dá paste e varia-se o tamanho da imagem a ser colada.\n");
+
+  InstrReset();
+  printf("\n");
+  printf("Subimagem 1 (300x300):\n");
+  if (ImageLocateSubImage(image1, &px, &py, imageToPaste)) {
+      printf("Subimagem encontrada. Posição: (%d, %d)\n", px, py);
+  } else {
+      printf("Subimagem não encontrada na imagem 1.\n");
+  }
+  InstrPrint();
+
+  InstrReset();
+  printf("\n");
+  printf("Subimagem 2 (350x350):\n");
+  if (ImageLocateSubImage(image1, &px, &py, image4)) {
+      printf("Subimagem encontrada. Posição: (%d, %d)\n", px, py);
+  } else {
+      printf("Subimagem não encontrada na imagem 2.\n");
+  }
+  InstrPrint();
+
+  InstrReset();
+  printf("\n");
+  printf("Subimagem 3 (400x400):\n");
+  if (ImageLocateSubImage(image1, &px, &py, image3)) {
+      printf("Subimagem encontrada. Posição: (%d, %d)\n", px, py);
+  } else {
+      printf("Subimagem não encontrada na imagem 3.\n");
+  }
+  InstrPrint();
+
+  InstrReset();
+  printf("\n");
+  printf("Subimagem 4 (450x450):\n");
+  if (ImageLocateSubImage(image1, &px, &py, image2)) {
+      printf("Subimagem encontrada. Posição: (%d, %d)\n", px, py);
+  } else {
+      printf("Subimagem não encontrada na imagem 4.\n");
   }
   InstrPrint();
 
   ImageDestroy(&imageToPaste);
-  ImageDestroy(&imageLarge);
-  ImageDestroy(&imageMedium);
-  ImageDestroy(&imageSmall);
+  ImageDestroy(&image1);
+  ImageDestroy(&image2);
+  ImageDestroy(&image3);
+  ImageDestroy(&image4);
+  
   return 0;
 }

@@ -9,9 +9,6 @@
 
 int main(int argc, char* argv[]) {
   program_name = argv[0];
-  if (argc != 8) {
-    error(1, 0, "Usage: imageTest input.pgm output.pgm");
-  }
 
   ImageInit();
   
@@ -64,9 +61,11 @@ int main(int argc, char* argv[]) {
 
   // Testar a função ImageLocateSubImage na imagem grande
 
+  printf("Mantém-se o tamanho da imagem a ser colada e varia-se o tamanho da imagem onde se dá paste.\n");
+
   InstrReset();
   printf("\n");
-  printf("Imagem grande:\n");
+  printf("Imagem grande (940x940):\n");
   if (ImageLocateSubImage(imageLarge, &px, &py, imageToPaste)) {
       printf("Subimagem encontrada na imagem grande. Posição: (%d, %d)\n", px, py);
   } else {
@@ -78,7 +77,7 @@ int main(int argc, char* argv[]) {
 
   InstrReset();
   printf("\n");
-  printf("Imagem média:\n");
+  printf("Imagem média (640x480):\n");
   if (ImageLocateSubImage(imageMedium, &px, &py, imageToPaste)) {
       printf("Subimagem encontrada na imagem média. Posição: (%d, %d)\n", px, py);
   } else {
@@ -90,7 +89,7 @@ int main(int argc, char* argv[]) {
 
   InstrReset();
   printf("\n");
-  printf("Imagem pequena:\n");
+  printf("Imagem pequena (300x300):\n");
   if (ImageLocateSubImage(imageSmall, &px, &py, imageToPaste)) {
       printf("Subimagem encontrada na imagem pequena. Posição: (%d, %d)\n", px, py);
   } else {
@@ -98,9 +97,78 @@ int main(int argc, char* argv[]) {
   }
   InstrPrint();
 
+  printf("\n");
+  printf("-------------------------------------------------------------------------------\n");
+  printf("Mantém-se o tamanho da imagem onde se dá paste e varia-se o tamanho da imagem a ser colada.\n");
+
+  Image subimage1 = ImageCrop(imageLarge, 0, 0, 100, 100);
+  if (subimage1 == NULL) {
+    error(2, errno, "Creating subimage1: %s", ImageErrMsg());
+  }
+
+  Image subimage2 = ImageCrop(imageLarge, 0, 0, 200, 200);
+  if (subimage2 == NULL) {
+    error(2, errno, "Creating subimage2: %s", ImageErrMsg());
+  }
+
+  Image subimage3 = ImageCrop(imageLarge, 0, 0, 300, 300);
+  if (subimage3 == NULL) {
+    error(2, errno, "Creating subimage3: %s", ImageErrMsg());
+  }
+
+  Image subimage4 = ImageCrop(imageLarge, 0, 0, 400, 400);
+  if (subimage4 == NULL) {
+    error(2, errno, "Creating subimage4: %s", ImageErrMsg());
+  }
+
+  InstrReset();
+  printf("\n");
+  printf("Subimagem 1 (100x100):\n");
+  if (ImageLocateSubImage(imageLarge, &px, &py, subimage1)) {
+      printf("Subimagem 1 encontrada. Posição: (%d, %d)\n", px, py);
+  } else {
+      printf("Subimagem 1 não encontrada.\n");
+  }
+  InstrPrint();
+
+  InstrReset();
+  printf("\n");
+  printf("Subimagem 2 (200x200):\n");
+  if (ImageLocateSubImage(imageLarge, &px, &py, subimage2)) {
+      printf("Subimagem 2 encontrada. Posição: (%d, %d)\n", px, py);
+  } else {
+      printf("Subimagem 2 não encontrada.\n");
+  }
+  InstrPrint();
+
+  InstrReset();
+  printf("\n");
+  printf("Subimagem 3 (300x300):\n");
+  if (ImageLocateSubImage(imageLarge, &px, &py, subimage3)) {
+      printf("Subimagem 3 encontrada. Posição: (%d, %d)\n", px, py);
+  } else {
+      printf("Subimagem 3 não encontrada.\n");
+  }
+  InstrPrint();
+
+  InstrReset();
+  printf("\n");
+  printf("Subimagem 4 (400x400):\n");
+  if (ImageLocateSubImage(imageLarge, &px, &py, subimage4)) {
+      printf("Subimagem 4 encontrada. Posição: (%d, %d)\n", px, py);
+  } else {
+      printf("Subimagem 4 não encontrada.\n");
+  }
+  InstrPrint();
+  
+
   ImageDestroy(&imageToPaste);
   ImageDestroy(&imageLarge);
   ImageDestroy(&imageMedium);
   ImageDestroy(&imageSmall);
+  ImageDestroy(&subimage1);
+  ImageDestroy(&subimage2);
+  ImageDestroy(&subimage3);
+  ImageDestroy(&subimage4);
   return 0;
 }

@@ -88,7 +88,7 @@ testMelhorCaso: $(PROGS) setup
 	./melhorCaso pgm/small/bird_256x256.pgm pgm/large/einstein_940x940.pgm pgm/medium/airfield-05_640x480.pgm  pgm/small/art4_300x300.pgm largePasted_melhor.pgm mediumPasted_melhor.pgm smallPasted_melhor.pgm
 
 testPiorCaso: $(PROGS) setup
-	./piorCaso pgm/small/bird_256x256.pgm pgm/large/einstein_940x940.pgm pgm/medium/airfield-05_640x480.pgm  pgm/small/art4_300x300.pgm largePasted_pior.pgm mediumPasted_pior.pgm smallPasted_pior.pgm
+	./piorCaso
 
 testValgrind: $(PROGS) setup
 	valgrind ./imageTool test/original.pgm neg save neg.pgm
