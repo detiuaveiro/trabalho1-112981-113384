@@ -949,6 +949,54 @@ int ImageLocateSubImage(Image img1, int* px, int* py, Image img2) { ///
 
 
 
+/* Esta função (auxiliar) calcula a média dos píxeis no retângulo [x-dx, x+dx]x[y-dy, y+dy] através da soma comulativa */
+static uint8 rectMeanCalc(Image img, int x, int y, int dx, int dy, unsigned long **comulativeSum) {
+  
+  /* Obter a largura e altura máximas da imagem */
+  int imgWidth = ImageWidth(img);   
+  int imgHeight = ImageHeight(img); 
+
+  /* Obter os limites do retângulo na imagem */
+  /*
+    As verificações a seguir (feitas in-line) servem para saber se os limites do retângulo [x-dx, x+dx]x[y-dy, y+dy] ficam dentro da imagem;
+    Caso não fiquem, o respetivo lado é moldado ao limite da imagem (isto tudo, sabendo que o ponto (x, y) está dentro da imagem!)
+  */
+  int xEsquerda = ImageValidPos(img, x - dx, y) ? (x - dx) : 0; 
+  int yCima     = ImageValidPos(img, y - dy, y) ? (y - dy) : 0;     
+  int xDireita  = ImageValidPos(img, x + dx, y) ? (x + dx) : (imgWidth-1); 
+  int yBaixo    = ImageValidPos(img, y + dy, y) ? (y + dy) : (imgHeight-1);  
+
+  /* Calcular a área do retângulo */
+  int areaRect = (yBaixo-yCima+1)*(xDireita-xEsquerda+1);
+
+  /*
+    Agora são necessárias duas variáveis auxiliares para ser possível calcular o valor dos seguintes píxeis:
+      - um píxel acima deste retângulo, no limite direito do mesmo (xDireita, yCima-1)
+      - um píxel acima deste retângulo, no limite esquerdo do mesmo menos 1 (xEsquerda-1, yCima-1)
+      - um píxel a esquerda deste retângulo, no limite inferior do mesmo (xEsquerda-q, yBaixo)
+    As variáveis terão de ser então: xEsquerda-1 e yCima-1, pois as restantes já se sabem;
+    Além de se fazerem estas atribuiçõees, tem-se também de verificar se os valores auxiliares são válidos dentro da imagem, e
+    é para isso que servem as verificações in-line abaixo. Caso não sejam válidos, mantêm-se os limites da imagem calculados anteriormente:
+  */
+  int xEsquerda_aux = ImageValidPos(img, xEsquerda-1, y) ? xEsquerda-1 : xEsquerda;
+  int yCima_aux     = ImageValidPos(img, yCima-1, y) ? yCima-1 : yCima;
+
+  /* Com as coordenadas obtidas acima, já é possível calcular os valores que integrarão a fórmula do cálculo da média do retângulo: */
+  int val1 = comulativeSum[yBaixo][xDireita];  
+  int val2 = xEsquerda > 0 ? comulativeSum[yBaixo][xEsquerda_aux] : 0;
+  int val3 = yCima > 0 ? comulativeSum[yCima_aux][xDireita] : 0;
+  int val4 = (xEsquerda > 0 && yCima > 0) ? comulativeSum[yCima_aux][xEsquerda_aux] : 0;
+  
+  /* Aplicar a fórmula */
+  int conta = val1 - val2 - val3 + val4;
+
+
+  /* No fim, devolve a média dos valores dos píxeis do retângulo (arredondada através da adição ao numerador de metade do valor do denominador)*/
+  return (uint8) (((conta+areaRect/2)/areaRect)); 
+}
+
+
+
 /// Blur an image by a applying a (2dx+1)x(2dy+1) mean filter.
 /// Each pixel is substituted by the mean of the pixels in the rectangle
 /// [x-dx, x+dx]x[y-dy, y+dy].
@@ -1018,7 +1066,7 @@ void ImageBlur(Image img, int dx, int dy) { ///
   for (int x=0; x<imgWidth; x++) {
     for (int y=0; y<imgHeight; y++) {
 
-      /* O cálculo da média é feito recorrendo à função auxiliar rectMeanCalc(), definida mais abaixo, com as devidas explicações */
+      /* O cálculo da média é feito recorrendo à função auxiliar rectMeanCalc(), definida acima, com as devidas explicações */
       mean = rectMeanCalc(img, x, y, dx, dy, cumulativeSum); 
 
       /* Substituir o valor do píxel desta iteração pela média calculada acima */
@@ -1031,54 +1079,9 @@ void ImageBlur(Image img, int dx, int dy) { ///
     free(cumulativeSum[i]);
   }
   free(cumulativeSum);
-  
+
 }
 
 
 
-/* Esta função (auxiliar) calcula a média dos píxeis no retângulo [x-dx, x+dx]x[y-dy, y+dy] através da soma comulativa */
-static uint8 rectMeanCalc(Image img, int x, int y, int dx, int dy, unsigned long **comulativeSum) {
-  
-  /* Obter a largura e altura máximas da imagem */
-  int imgWidth = ImageWidth(img);   
-  int imgHeight = ImageHeight(img); 
-
-  /* Obter os limites do retângulo na imagem */
-  /*
-    As verificações a seguir (feitas in-line) servem para saber se os limites do retângulo [x-dx, x+dx]x[y-dy, y+dy] ficam dentro da imagem;
-    Caso não fiquem, o respetivo lado é moldado ao limite da imagem (isto tudo, sabendo que o ponto (x, y) está dentro da imagem!)
-  */
-  int xEsquerda = ImageValidPos(img, x - dx, y) ? (x - dx) : 0; 
-  int yCima     = ImageValidPos(img, y - dy, y) ? (y - dy) : 0;     
-  int xDireita  = ImageValidPos(img, x + dx, y) ? (x + dx) : (imgWidth-1); 
-  int yBaixo    = ImageValidPos(img, y + dy, y) ? (y + dy) : (imgHeight-1);  
-
-  /* Calcular a área do retângulo */
-  int areaRect = (yBaixo-yCima+1)*(xDireita-xEsquerda+1);
-
-  /*
-    Agora são necessárias duas variáveis auxiliares para ser possível calcular o valor dos seguintes píxeis:
-      - um píxel acima deste retângulo, no limite direito do mesmo (xDireita, yCima-1)
-      - um píxel acima deste retângulo, no limite esquerdo do mesmo menos 1 (xEsquerda-1, yCima-1)
-      - um píxel a esquerda deste retângulo, no limite inferior do mesmo (xEsquerda-q, yBaixo)
-    As variáveis terão de ser então: xEsquerda-1 e yCima-1, pois as restantes já se sabem;
-    Além de se fazerem estas atribuiçõees, tem-se também de verificar se os valores auxiliares são válidos dentro da imagem, e
-    é para isso que servem as verificações in-line abaixo. Caso não sejam válidos, mantêm-se os limites da imagem calculados anteriormente:
-  */
-  int xEsquerda_aux = ImageValidPos(img, xEsquerda-1, y) ? xEsquerda-1 : xEsquerda;
-  int yCima_aux     = ImageValidPos(img, yCima-1, y) ? yCima-1 : yCima;
-
-  /* Com as coordenadas obtidas acima, já é possível calcular os valores que integrarão a fórmula do cálculo da média do retângulo: */
-  int val1 = comulativeSum[yBaixo][xDireita];  
-  int val2 = xEsquerda > 0 ? comulativeSum[yBaixo][xEsquerda_aux] : 0;
-  int val3 = yCima > 0 ? comulativeSum[yCima_aux][xDireita] : 0;
-  int val4 = (xEsquerda > 0 && yCima > 0) ? comulativeSum[yCima_aux][xEsquerda_aux] : 0;
-  
-  /* Aplicar a fórmula */
-  int conta = val1 - val2 - val3 + val4;
-
-
-  /* No fim, devolve a média dos valores dos píxeis do retângulo (arredondada através da adição ao numerador de metade do valor do denominador)*/
-  return (uint8) (((conta+areaRect/2)/areaRect)); 
-  }
 
