@@ -1066,6 +1066,9 @@ void ImageBlur(Image img, int dx, int dy) { ///
   for (int x=0; x<imgWidth; x++) {
     for (int y=0; y<imgHeight; y++) {
 
+      /* Incrementar o contador de operações (relativamente a "rectMeanCalc()", mais abaixo) */
+      OPERATIONS++;
+
       /* O cálculo da média é feito recorrendo à função auxiliar rectMeanCalc(), definida acima, com as devidas explicações */
       mean = rectMeanCalc(img, x, y, dx, dy, cumulativeSum); 
 
