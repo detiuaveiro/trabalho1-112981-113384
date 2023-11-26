@@ -236,9 +236,6 @@ void ImageDestroy(Image* imgp) { ///
   /* Libertar a memória reservada para a imagem */
   free(*imgp); 
 
-  /* Preservar a variável errno ????????????????????????????????????????????????????????????????????????????????????? */
-  //errsave = errno; -> acho que não é aqui que se salvagurada, mas sim quando se chama a função, como na função ImageLoad()
-
   /* Para evitar erros, colocar o ponteiro a apontar para NULL */
   *imgp = NULL; 
   
@@ -711,7 +708,7 @@ Image ImageMirror(Image img) { ///
   /* Verificar a correta criação da imagem */
   if (mirroredImage == NULL) {
     // errno é automaticamente definido de acordo com o erro ocorrido
-    errCause = "Failed to create a new image.";
+    errCause = "Failed to create a new image in ImageCreate().";
     return NULL;
   }
 
@@ -761,7 +758,7 @@ Image ImageCrop(Image img, int x, int y, int w, int h) { ///
   /* Verificar a correta criação da imagem */
   if (croppedImage == NULL) {
     // errno é automaticamente definido de acordo com o erro ocorrido
-    errCause = "Failed to create a new image.";
+    errCause = "Failed to create a new image in ImageCreate().";
     return NULL;
   }
 
